@@ -138,7 +138,7 @@
                 <TextBlock Grid.Column="0"
                            Style="{DynamicResource Text.BodySecondary}"
                            VerticalAlignment="Center"
-                           Text="{Binding FailureDiagnostic, TargetNullValue=Run the destination check, then start the recovery.}" />
+                           Text="{Binding FailureDiagnostic, TargetNullValue='Run the destination check, then start the recovery.'}" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="Cancel"
                             Height="{DynamicResource Height.XS}"

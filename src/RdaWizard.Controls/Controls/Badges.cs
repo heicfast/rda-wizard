@@ -88,9 +88,10 @@ public class HealthGauge : Control
 /// <summary>
 /// State surfaces for pages: EmptyState (no content: first-run, no devices,
 /// no results) and ErrorState (diagnostic + retry) — every page must
-/// handle loading/empty/error (standing rule).
+/// handle loading/empty/error (standing rule). Derives from ContentControl
+/// so pages can embed action buttons (retry etc.) as content.
 /// </summary>
-public class StateSurface : Control
+public class StateSurface : ContentControl
 {
     static StateSurface()
     {

@@ -82,12 +82,12 @@
                 <StackPanel>
                     <TextBlock Style="{DynamicResource Text.Caption}" Text="STORAGE TYPE" />
                     <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
-                               Text="{Binding Report.IsSsd, TargetNullValue=Unknown, StringFormat={}{0}}" />
+                               Text="{Binding Report.IsSsd, TargetNullValue='Unknown', StringFormat={}{0}}" />
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Style="{DynamicResource Text.Caption}" Text="TEMPERATURE" />
                     <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
-                               Text="{Binding Report.Aggregates.TemperatureC, TargetNullValue=—, StringFormat={}{0} °C}" />
+                               Text="{Binding Report.Aggregates.TemperatureC, TargetNullValue='—', StringFormat={}{0} °C}" />
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Style="{DynamicResource Text.Caption}" Text="POWER-ON HOURS" />
