@@ -469,3 +469,18 @@ T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity l
   band verification crops (drives-band/trio-band/content-lower) to resolve the
   tile asymmetry (selected = expanded state) and the trio arrangement (bare
   icon+label, wrapped, no card chrome).
+
+### S3-T5 — Detail page scan-state og rebuild (commit 4fabead)
+
+- Crop-VLM scan-phase extraction (scan-21pct toolbar/tree/bottom-bar/searching-strip +
+  scan-paused bottom-bar): og bottom bar = 56-64px ring gauge w/ % inside, Pause+Stop
+  (Pause unavailable in our CLI wiring — sanctioned delta), 2-line status text, Recover
+  All ... enabled during scan in og (ours gated on session truth per G-02/G-03).
+- DetailViewModel: StatusPrimary/Secondary og formats; WatchSessionBoundariesAsync
+  (session-file size growth = stage-boundary checkpoint → partial tree install,
+  ADR-2 browse-while-scanning); FileRowViewModel rows; FoundBytes session truth.
+- DetailView: full og chrome (Searching: header, CNavigateBar toolbar, Path/Type tabs,
+  column list, CBottomArea). AppModalDialog (DrwMessageBox 540-family) — S-8 fixed
+  (custom labels now render). 70 Core + 49 Integration green.
+- Next: T6 results-state refinement (filter bar, preview pane, tree counts + icons,
+  context menu, PathPrefix scoping for folder targets), then T7 slop remainder.
