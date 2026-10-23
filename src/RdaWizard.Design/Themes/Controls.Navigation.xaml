@@ -286,4 +286,224 @@
         </Setter>
     </Style>
 
+<!-- ============================================================
+         OG sidebar (02-landing): 6 entries in 3 sections, rows ~54px,
+         selected = blue text + light-blue fill + left indicator bar.
+         ============================================================ -->
+    <Style x:Key="Text.SidebarHeader" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Micro}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+        <Setter Property="Margin" Value="0,6,0,4" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <Style x:Key="Sidebar.Item" TargetType="RadioButton">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Focus.Ring}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                Padding="14,0,12,0" />
+                        <Rectangle x:Name="Indicator"
+                                   Width="3"
+                                   RadiusX="1.5" RadiusY="1.5"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Stretch"
+                                   Margin="4,8"
+                                   Fill="Transparent" />
+                        <ContentPresenter x:Name="Cp"
+                                          VerticalAlignment="Center"
+                                          Margin="14,0,12,0"
+                                          RecognizesAccessKey="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarHover}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarSelected}" />
+                            <Setter TargetName="Indicator" Property="Fill" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+                            <Setter Property="Opacity" Value="0.6" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Cp" Property="TextElement.Foreground" Value="{DynamicResource Brush.Brand.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Hamburger menu popup items (og Drw_More_Menu, items ~36px) -->
+    <Style x:Key="Menu.Item" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Focus.Ring}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="Transparent"
+                            CornerRadius="4"
+                            Padding="12,0">
+                        <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarHover}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Menu.Separator" TargetType="Separator">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="8,4" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Border.Hairline}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Rectangle Height="1" Fill="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+<!-- ============================================================
+         OG sidebar (02-landing): 6 entries in 3 sections, rows ~54px,
+         selected = blue text + light-blue fill + left indicator bar.
+         ============================================================ -->
+    <Style x:Key="Text.SidebarHeader" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Micro}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+        <Setter Property="Margin" Value="0,6,0,4" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <Style x:Key="Sidebar.Item" TargetType="RadioButton">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Focus.Ring}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                Background="Transparent"
+                                CornerRadius="6"
+                                Padding="14,0,12,0" />
+                        <Rectangle x:Name="Indicator"
+                                   Width="3"
+                                   RadiusX="1.5" RadiusY="1.5"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Stretch"
+                                   Margin="4,8"
+                                   Fill="Transparent" />
+                        <ContentPresenter x:Name="Cp"
+                                          VerticalAlignment="Center"
+                                          Margin="14,0,12,0"
+                                          RecognizesAccessKey="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarHover}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarSelected}" />
+                            <Setter TargetName="Indicator" Property="Fill" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+                            <Setter Property="Opacity" Value="0.6" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Cp" Property="TextElement.Foreground" Value="{DynamicResource Brush.Brand.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Hamburger menu popup items (og Drw_More_Menu, items ~36px) -->
+    <Style x:Key="Menu.Item" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource Focus.Ring}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="Transparent"
+                            CornerRadius="4"
+                            Padding="12,0">
+                        <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.SidebarHover}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Menu.Separator" TargetType="Separator">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="8,4" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Border.Hairline}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Rectangle Height="1" Fill="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

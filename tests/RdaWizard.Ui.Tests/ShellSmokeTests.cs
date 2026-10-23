@@ -45,7 +45,7 @@ public sealed class ShellSmokeTests : IDisposable
         var window = _app!.GetMainWindow(_automation, TimeSpan.FromSeconds(30));
         Assert.NotNull(window);
 
-        var headline = window.FindFirstDescendant(cf => cf.ByText("Where did you lose your files?"));
+        var headline = window.FindFirstDescendant(cf => cf.ByText("Select a location to search for lost data"));
         Assert.NotNull(headline);
     }
 

@@ -1,0 +1,56 @@
+<Window x:Class="RdaWizard.App.Dialogs.RecoveryProgressDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Recovering files"
+        Width="540" Height="240"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStyle="ToolWindow"
+        Background="{DynamicResource Brush.Bg.Window}"
+        TextOptions.TextFormattingMode="Ideal"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    <!-- Transitional recovery progress surface (og: RecoverProgressDialog).
+         The full og dialog family (destination/space-gate/progress/result)
+         replaces this in the recovery-funnel phase. -->
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Style="{DynamicResource Text.Subtitle}"
+                   Text="Recovering files" />
+
+        <TextBlock Grid.Row="1"
+                   Style="{DynamicResource Text.BodySecondary}"
+                   Margin="0,8,0,0"
+                   Text="{Binding DestinationDirectory, StringFormat=Saving to: {0}, TargetNullValue=…}" />
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ProgressBar Height="8"
+                         Maximum="100"
+                         Value="{Binding Percent, Mode=OneWay}" />
+            <TextBlock Grid.Column="1"
+                       Style="{DynamicResource Text.Numeral}"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Text="{Binding Percent, StringFormat={}{0:0}%}" />
+        </Grid>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{DynamicResource Button.Secondary}"
+                    Content="Cancel recovery"
+                    Command="{Binding CancelRecoveryCommand}" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,53 +1,24 @@
 namespace RdaWizard.Core.Wizard;
 
 /// <summary>
-/// Wizard states — the clean-room reconstruction of the DRW page graph
-/// (docs/UI-MAP.md §4) reduced to the surfaces we ship: no retention gates,
-/// no monetization, no cloud/NAS/RAID chains.
-/// The og runs scan *inside* its results page; we keep an explicit Scanning
-/// state because our progress page owns truthful telemetry (ADR-4) and a
-/// destructive-cancel confirmation (ADR-3).
+/// Wizard states — mirroring the OG page-flow states (RE corpus
+/// userflow-state-machine): the scan runs ON the Detail page (scan + results
+/// are one surface — "browse-while-scanning"), recovery is a modal dialog
+/// family. No Configure step: the OG starts scanning immediately from the
+/// landing CTA.
 /// </summary>
 public enum WizardState
 {
-    /// <summary>Home / device selection (og: PeripheralHomeView).</summary>
+    /// <summary>Landing (og: PeripheralHomeView) + sidebar destination pages.</summary>
     Select,
 
-    /// <summary>Scan configuration: mode, filters, advanced read policy.</summary>
-    Configure,
-
-    /// <summary>Scan executing (progress surface; cancel is destructive).</summary>
+    /// <summary>Scan executing on the Detail page (quick → advanced, two-phase).
+    /// Results become visible after the quick pass while advanced continues.</summary>
     Scanning,
 
-    /// <summary>Results explorer: tree + list + preview + filters.</summary>
+    /// <summary>Results browsing on the Detail page (session loaded).</summary>
     Results,
 
-    /// <summary>Recovery queue executing (per-file progress, verification).</summary>
+    /// <summary>Recovery dialog family in flight (modal).</summary>
     Recovering,
-
-    /// <summary>Completion report (success / partial / failed with reasons).</summary>
-    Complete,
-}
-
-/// <summary>
-/// The three rail phases shown by the WizardStepper (a documented
-/// improvement — the og had no stepper; see AUDIT-UI ADR-12).
-/// </summary>
-public enum WizardPhase
-{
-    Select,
-    Scan,
-    Recover,
-}
-
-public static class WizardStateExtensions
-{
-    /// <summary>Maps a state to the stepper rail phase it belongs to.</summary>
-    public static WizardPhase Phase(this WizardState state) => state switch
-    {
-        WizardState.Select or WizardState.Configure => WizardPhase.Select,
-        WizardState.Scanning => WizardPhase.Scan,
-        WizardState.Results or WizardState.Recovering or WizardState.Complete => WizardPhase.Recover,
-        _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
-    };
 }

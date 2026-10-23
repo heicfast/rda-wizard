@@ -5,29 +5,32 @@ namespace RdaWizard.Core.Navigation;
 
 /// <summary>
 /// Navigation service implementation. Forward navigation is constrained by
-/// the wizard state machine (a page for state X can only be shown in state
-/// X — the shell never shows Results while Scanning, etc.). The state
-/// machine itself is owned by <see cref="ViewModels.MainViewModel"/>; this
-/// service enforces page-graph legality and keeps a back-stack.
+/// the wizard state machine. The OG model: sidebar destination pages are
+/// always reachable (the scan runs app-level in the background); the Detail
+/// page (scan + results) is reachable while a scan runs or a session is
+/// loaded; navigation is frozen while a recovery is in flight (modal).
 /// </summary>
 public sealed class NavigationService : INavigationService
 {
     private readonly ILogger<NavigationService> _logger;
 
-    /// <summary>Pages legal per wizard state. Anything else refuses navigation.</summary>
+    /// <summary>Sidebar destination pages — legal in every non-modal state.</summary>
+    private static readonly ImmutableHashSet<PageKey> SidebarPages =
+        [PageKey.Landing, PageKey.SdCard, PageKey.MoreTools, PageKey.FileRepair,
+         PageKey.LostPartition, PageKey.ChronoSnap, PageKey.Settings, PageKey.About];
+
+    /// <summary>Pages legal per wizard state.</summary>
     private static readonly ImmutableDictionary<Wizard.WizardState, ImmutableHashSet<PageKey>> StatePages =
         new Dictionary<Wizard.WizardState, ImmutableHashSet<PageKey>>
         {
-            [Wizard.WizardState.Select] = [PageKey.Home, PageKey.Health, PageKey.Repair, PageKey.Settings, PageKey.About],
-            [Wizard.WizardState.Configure] = [PageKey.ScanConfig, PageKey.Settings, PageKey.About],
-            [Wizard.WizardState.Scanning] = [PageKey.ScanProgress, PageKey.Settings, PageKey.About],
-            [Wizard.WizardState.Results] = [PageKey.Results, PageKey.Health, PageKey.Settings, PageKey.About],
-            [Wizard.WizardState.Recovering] = [PageKey.Recovery, PageKey.Settings, PageKey.About],
-            [Wizard.WizardState.Complete] = [PageKey.Completion, PageKey.Results, PageKey.Settings, PageKey.About],
+            [Wizard.WizardState.Select] = [.. SidebarPages, PageKey.Repair, PageKey.Health],
+            [Wizard.WizardState.Scanning] = [.. SidebarPages, PageKey.Detail],
+            [Wizard.WizardState.Results] = [.. SidebarPages, PageKey.Detail, PageKey.Repair, PageKey.Health],
+            [Wizard.WizardState.Recovering] = [PageKey.Detail],
         }.ToImmutableDictionary();
 
     private readonly Stack<PageKey> _history = new();
-    private PageKey _current = PageKey.Home;
+    private PageKey _current = PageKey.Landing;
     private Wizard.WizardState _stateGate = Wizard.WizardState.Select;
 
     public NavigationService(ILogger<NavigationService> logger) => _logger = logger;
@@ -87,29 +90,33 @@ public sealed class NavigationService : INavigationService
             return false;
         }
 
-        var target = _history.Pop();
-        if (!StatePages[_stateGate].Contains(target))
+        // Pop first; if the popped page is illegal in the current state the
+        // entry is dropped and back is refused (the wizard moved on).
+        while (_history.Count > 0)
         {
-            // The wizard moved on; going back to an outdated page is refused
-            // rather than showing a stale surface (truthful UI).
-            _logger.LogInformation("Back refused: {Target} illegal in state {State}", target, _stateGate);
-            return false;
+            var target = _history.Pop();
+            if (StatePages[_stateGate].Contains(target))
+            {
+                var from = _current;
+                _current = target;
+                _logger.LogInformation("Navigate back: {From} -> {Target}", from, target);
+                Navigated?.Invoke(this, new NavigationEventArgs(from, target, NavigationParameter.None, IsBack: true));
+                return true;
+            }
+
+            _logger.LogInformation("Back target {Target} illegal in state {State}; dropping history entry", target, _stateGate);
         }
 
-        var from = _current;
-        _current = target;
-        _logger.LogInformation("Navigate back: {From} -> {Target}", from, target);
-        Navigated?.Invoke(this, new NavigationEventArgs(from, target, NavigationParameter.None, IsBack: true));
-        return true;
+        _logger.LogInformation("Back refused: no legal history entries in state {State}", _stateGate);
+        return false;
     }
 
-    public void ResetToHome()
+    public void ResetToLanding()
     {
         _history.Clear();
         var from = _current;
-        _current = PageKey.Home;
-        _stateGate = Wizard.WizardState.Select;
-        _logger.LogInformation("Navigation reset to Home (was {From})", from);
-        Navigated?.Invoke(this, new NavigationEventArgs(from, PageKey.Home, NavigationParameter.None, IsBack: false));
+        _current = PageKey.Landing;
+        _logger.LogInformation("Navigation reset to Landing (was {From})", from);
+        Navigated?.Invoke(this, new NavigationEventArgs(from, PageKey.Landing, NavigationParameter.None, IsBack: false));
     }
 }

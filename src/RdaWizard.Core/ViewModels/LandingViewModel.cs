@@ -2,49 +2,46 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using RdaWizard.Core.Models;
-using RdaWizard.Core.Navigation;
 using RdaWizard.Core.Services;
 
 namespace RdaWizard.Core.ViewModels;
 
 /// <summary>
-/// Home / device selection (og: PeripheralHomeView — UI-MAP §3 P02).
-/// States: Loading / Ready / Error / Empty, plus driver status and the
-/// session-import entry. Selecting a disk/volume enables BeginScanSetup;
-/// loading a session jumps straight to Results (ImportSession edge).
+/// Landing page (og: PeripheralHomeView, wizard stack index 2 — the default
+/// start page). Device tiles with capacity bars, the "Specify a location"
+/// trio, the "Search for Lost Data" CTA (starts the scan immediately — the
+/// og has no scan-configuration step), and the "Continue last scanning"
+/// session banner (P41). Selecting a tile enables the CTA; loading a session
+/// jumps straight to the Detail results page (ImportSession edge).
 /// </summary>
-public partial class HomeViewModel : ViewModelBase
+public partial class LandingViewModel : ViewModelBase
 {
-    private readonly ILogger<HomeViewModel> _logger;
+    private readonly ILogger<LandingViewModel> _logger;
     private readonly IDeviceEnumerationService _devices;
-    private readonly IDriverStatusService _driverStatus;
     private readonly ISessionService _sessions;
     private readonly IDialogService _dialogs;
-    private readonly INavigationService _navigation;
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasDevices;
     [ObservableProperty] private string? _errorDiagnostic;
     [ObservableProperty] private IReadOnlyList<DiskInfo> _disks = Array.Empty<DiskInfo>();
-    [ObservableProperty] private DriverStatus? _driver;
     [ObservableProperty] private ScanTarget? _selectedTarget;
     [ObservableProperty] private IReadOnlyList<SessionInfo> _recentSessions = Array.Empty<SessionInfo>();
-    [ObservableProperty] private SessionInfo? _selectedRecentSession;
 
-    public HomeViewModel(
-        ILogger<HomeViewModel> logger,
+    /// <summary>True when a scan is running (sidebar returns to the landing
+    /// mid-scan): the CTA becomes a "return to scan" affordance.</summary>
+    [ObservableProperty] private bool _isScanRunning;
+
+    public LandingViewModel(
+        ILogger<LandingViewModel> logger,
         IDeviceEnumerationService devices,
-        IDriverStatusService driverStatus,
         ISessionService sessions,
-        IDialogService dialogs,
-        INavigationService navigation)
+        IDialogService dialogs)
     {
         _logger = logger;
         _devices = devices;
-        _driverStatus = driverStatus;
         _sessions = sessions;
         _dialogs = dialogs;
-        _navigation = navigation;
     }
 
     /// <summary>Shell calls this on first show and on explicit refresh.</summary>
@@ -66,12 +63,10 @@ public partial class HomeViewModel : ViewModelBase
             ErrorDiagnostic = enumeration.Success ? null : (enumeration.Diagnostic ?? "The engine could not list disks.");
             SelectedTarget = null;
 
-            Driver = await _driverStatus.ProbeAsync(cancellationToken).ConfigureAwait(true);
             RecentSessions = await _sessions.ListRecentAsync(cancellationToken).ConfigureAwait(true);
-            SelectedRecentSession = null;
 
-            _logger.LogInformation("Home refreshed: {Disks} disks, {Volumes} volumes, driver {Driver}",
-                enumeration.Disks.Count, enumeration.Volumes.Count, Driver?.State.ToString() ?? "unknown");
+            _logger.LogInformation("Landing refreshed: {Disks} disks, {Volumes} volumes, {Sessions} recent sessions",
+                enumeration.Disks.Count, enumeration.Volumes.Count, RecentSessions.Count);
         }
         catch (OperationCanceledException)
         {
@@ -79,7 +74,7 @@ public partial class HomeViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Home refresh failed");
+            _logger.LogError(ex, "Landing refresh failed");
             ErrorDiagnostic = "Refreshing the device list failed: " + ex.Message;
             HasDevices = false;
         }
@@ -118,7 +113,21 @@ public partial class HomeViewModel : ViewModelBase
         _logger.LogInformation("Target: volume {Letter} on disk {Disk}", volume.Letter, volume.OwningDiskIndex);
     }
 
-    /// <summary>Loads a recent or picked session — jumps straight to Results when it parses.</summary>
+    /// <summary>The "Search for Lost Data" CTA — the og starts the scan
+    /// immediately (scanClickedSlot). Raises ScanRequested; the shell fires
+    /// the StartScan transition and hands the target to the Detail page.</summary>
+    [RelayCommand]
+    public void StartScan()
+    {
+        if (SelectedTarget is null)
+        {
+            return;
+        }
+        ScanRequested?.Invoke(this, SelectedTarget);
+    }
+
+    /// <summary>Loads a recent session (P41 banner "Load") — jumps straight
+    /// to the Detail results page when it parses.</summary>
     [RelayCommand]
     public async Task LoadSessionAsync(SessionInfo? session, CancellationToken cancellationToken)
     {
@@ -139,7 +148,7 @@ public partial class HomeViewModel : ViewModelBase
             }
             else
             {
-                // Corrupt/failed session: full, clear failure — never a partial tree (I. Edge states).
+                // Corrupt/failed session: full, clear failure — never a partial tree.
                 ErrorDiagnostic = "This scan session could not be opened: " + (loaded.Diagnostic ?? "the engine rejected the file.");
                 _logger.LogWarning("Session load failed: {Path}: {Diagnostic}", session.Path, loaded.Diagnostic);
                 await _dialogs.AlertAsync("Session", ErrorDiagnostic).ConfigureAwait(true);
@@ -168,6 +177,9 @@ public partial class HomeViewModel : ViewModelBase
             SizeBytes = new FileInfo(path).Length,
         }, cancellationToken).ConfigureAwait(true);
     }
+
+    /// <summary>Raised when the user presses the scan CTA with a target selected.</summary>
+    public event EventHandler<ScanTarget>? ScanRequested;
 
     /// <summary>Raised when a session was loaded and the shell should fire the ImportSession transition.</summary>
     public event EventHandler<LoadedSession>? SessionLoaded;

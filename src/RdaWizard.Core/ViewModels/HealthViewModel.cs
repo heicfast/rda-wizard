@@ -22,7 +22,6 @@ public partial class HealthViewModel : ViewModelBase
     [ObservableProperty] private HealthReport? _report;
     [ObservableProperty] private string? _errorDiagnostic;
     [ObservableProperty] private bool _smartUnavailable;
-    [ObservableProperty] private bool _needsElevation;
 
     public HealthViewModel(ILogger<HealthViewModel> logger, IHealthService health, IDialogService dialogs)
     {
@@ -38,7 +37,6 @@ public partial class HealthViewModel : ViewModelBase
         IsLoading = true;
         ErrorDiagnostic = null;
         SmartUnavailable = false;
-        NeedsElevation = false;
         try
         {
             Report = await _health.GetHealthAsync(diskIndex, cancellationToken).ConfigureAwait(true);
@@ -50,11 +48,6 @@ public partial class HealthViewModel : ViewModelBase
         {
             _logger.LogWarning(ex, "Health read failed for disk {Disk}", diskIndex);
             ErrorDiagnostic = "Reading this disk's health failed: " + ex.Message;
-            if (ex.Message.Contains("admin", StringComparison.OrdinalIgnoreCase) ||
-                ex.Message.Contains("cannot open", StringComparison.OrdinalIgnoreCase))
-            {
-                NeedsElevation = true;
-            }
         }
         finally
         {

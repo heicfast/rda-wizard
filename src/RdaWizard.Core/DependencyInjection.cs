@@ -29,12 +29,14 @@ public static class DependencyInjection
         services.TryAddSingleton<INavigationService>(static sp => sp.GetRequiredService<NavigationService>());
 
         // Page ViewModels (shell owns them; transient aux dialogs come later)
-        services.TryAddSingleton<HomeViewModel>();
-        services.TryAddSingleton<ScanConfigViewModel>();
-        services.TryAddSingleton<ScanProgressViewModel>();
-        services.TryAddSingleton<ResultsViewModel>();
+        services.TryAddSingleton<LandingViewModel>();
+        services.TryAddSingleton<DetailViewModel>();
+        services.TryAddSingleton<SdCardViewModel>();
+        services.TryAddSingleton<MoreToolsViewModel>();
+        services.TryAddSingleton<FileRepairPageViewModel>();
+        services.TryAddSingleton<LostPartitionViewModel>();
+        services.TryAddSingleton<ChronoSnapViewModel>();
         services.TryAddSingleton<RecoveryViewModel>();
-        services.TryAddSingleton<CompletionViewModel>();
         services.TryAddSingleton<HealthViewModel>();
         services.TryAddSingleton<RepairViewModel>();
         services.TryAddSingleton<SettingsViewModel>();

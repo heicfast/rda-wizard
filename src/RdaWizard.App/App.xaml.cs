@@ -100,7 +100,7 @@ public partial class App : Application
         mainWindow.Show();
 
         Log.Information("RdaWizard started (version {Version})", typeof(App).Assembly.GetName().Version);
-        _ = mainViewModel.Home.RefreshAsync(CancellationToken.None);
+        _ = mainViewModel.Landing.RefreshAsync(CancellationToken.None);
     }
 
     protected override async void OnExit(ExitEventArgs e)

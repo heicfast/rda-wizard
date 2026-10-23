@@ -15,14 +15,14 @@ public class NavigationServiceTests
     }
 
     [Fact]
-    public void StartsAtHome()
+    public void StartsAtLanding()
     {
         var service = Create();
-        Assert.Equal(PageKey.Home, service.Current);
+        Assert.Equal(PageKey.Landing, service.Current);
     }
 
     [Fact]
-    public void Home_InSelectState_NavigatesToHealth()
+    public void Landing_InSelectState_NavigatesToHealth()
     {
         var service = Create(WizardState.Select);
         Assert.True(service.TryNavigate(PageKey.Health));
@@ -30,43 +30,57 @@ public class NavigationServiceTests
     }
 
     [Fact]
-    public void Results_IllegalInSelectState_Refused()
+    public void Detail_IllegalInSelectState_Refused()
     {
         var service = Create(WizardState.Select);
-        Assert.False(service.TryNavigate(PageKey.Results));
-        Assert.Equal(PageKey.Home, service.Current);
+        Assert.False(service.TryNavigate(PageKey.Detail));
+        Assert.Equal(PageKey.Landing, service.Current);
     }
 
     [Fact]
-    public void Home_IllegalDuringScanning_Refused()
+    public void SidebarPages_LegalDuringScanning()
     {
-        var service = Create(WizardState.Select);
-        service.TryNavigate(PageKey.Health); // moves Current off Home
-        service.SetStateGate(WizardState.Scanning);
-        // Home is illegal in Scanning; the state gate wins over re-activation paths.
-        Assert.False(service.TryNavigate(PageKey.Home));
-        Assert.Equal(PageKey.Health, service.Current);
+        // The og runs the scan app-level: sidebar destination pages stay
+        // reachable while a scan executes.
+        var service = Create(WizardState.Scanning);
+        Assert.True(service.TryNavigate(PageKey.Landing));
+        Assert.True(service.TryNavigate(PageKey.SdCard));
+        Assert.True(service.TryNavigate(PageKey.MoreTools));
+        Assert.True(service.TryNavigate(PageKey.FileRepair));
+        Assert.True(service.TryNavigate(PageKey.LostPartition));
+        Assert.True(service.TryNavigate(PageKey.ChronoSnap));
+        Assert.True(service.TryNavigate(PageKey.Settings));
+        Assert.True(service.TryNavigate(PageKey.About));
     }
 
     [Fact]
-    public void ScanProgress_LegalDuringScanning()
+    public void Detail_LegalDuringScanning()
     {
         var service = Create(WizardState.Scanning);
-        Assert.True(service.TryNavigate(PageKey.ScanProgress));
+        Assert.True(service.TryNavigate(PageKey.Detail));
     }
 
     [Fact]
-    public void Results_LegalInResultsState()
+    public void Detail_LegalInResultsState()
     {
         var service = Create(WizardState.Results);
-        Assert.True(service.TryNavigate(PageKey.Results));
+        Assert.True(service.TryNavigate(PageKey.Detail));
     }
 
     [Fact]
-    public void Recovery_LegalOnlyInRecoveringState()
+    public void Navigation_FrozenWhileRecovering()
     {
-        Assert.False(Create(WizardState.Results).TryNavigate(PageKey.Recovery));
-        Assert.True(Create(WizardState.Recovering).TryNavigate(PageKey.Recovery));
+        // The og recovery is a modal family: only the Detail page is legal.
+        Assert.False(Create(WizardState.Recovering).TryNavigate(PageKey.Landing));
+        Assert.False(Create(WizardState.Recovering).TryNavigate(PageKey.Settings));
+        Assert.True(Create(WizardState.Recovering).TryNavigate(PageKey.Detail));
+    }
+
+    [Fact]
+    public void Health_IllegalWhileScanning_Refused()
+    {
+        var service = Create(WizardState.Scanning);
+        Assert.False(service.TryNavigate(PageKey.Health));
     }
 
     [Fact]
@@ -75,29 +89,43 @@ public class NavigationServiceTests
         var service = Create(WizardState.Select);
         service.TryNavigate(PageKey.Health);
         Assert.True(service.TryGoBack());
-        Assert.Equal(PageKey.Home, service.Current);
+        Assert.Equal(PageKey.Landing, service.Current);
     }
 
     [Fact]
-    public void Back_RefusedWhenTargetIllegalInNewState()
+    public void Back_DropsIllegalEntries_AndLandsOnFirstLegal()
     {
-        // Navigate Home -> Health in Select, then the wizard advances: back to
-        // Health is illegal from ScanProgress.
+        // Landing -> Health in Select, then the wizard advances to Scanning:
+        // Health is illegal while scanning, but the og allows returning to
+        // the landing (scan continues app-level) — back drops the illegal
+        // entry and lands on Landing.
         var service = Create(WizardState.Select);
         service.TryNavigate(PageKey.Health);
         service.SetStateGate(WizardState.Scanning);
-        Assert.False(service.TryGoBack());
+        Assert.True(service.TryGoBack());
+        Assert.Equal(PageKey.Landing, service.Current);
     }
 
     [Fact]
-    public void ResetToHome_ClearsHistory_AndGate()
+    public void Back_RefusedWhenAllEntriesIllegal()
+    {
+        var service = Create(WizardState.Select);
+        service.TryNavigate(PageKey.Health);
+        service.SetStateGate(WizardState.Recovering);
+        Assert.False(service.TryGoBack());
+        Assert.Equal(PageKey.Health, service.Current);
+    }
+
+    [Fact]
+    public void ResetToLanding_ClearsHistory()
     {
         var service = Create(WizardState.Select);
         service.TryNavigate(PageKey.Settings);
-        service.ResetToHome();
-        Assert.Equal(PageKey.Home, service.Current);
+        service.ResetToLanding();
+        Assert.Equal(PageKey.Landing, service.Current);
         Assert.False(service.CanGoBack);
-        // After reset the gate is Select: Settings must still be reachable.
+        // After reset the gate is unchanged by the service (the shell resets
+        // it): Settings must still be reachable.
         Assert.True(service.TryNavigate(PageKey.Settings));
     }
 
@@ -110,7 +138,7 @@ public class NavigationServiceTests
 
         service.TryNavigate(PageKey.About);
         Assert.NotNull(observed);
-        Assert.Equal(PageKey.Home, observed!.From);
+        Assert.Equal(PageKey.Landing, observed!.From);
         Assert.Equal(PageKey.About, observed.To);
     }
 
@@ -126,7 +154,7 @@ public class NavigationServiceTests
         // Re-navigation adds nothing: exactly one back step remains.
         Assert.True(service.CanGoBack);
         Assert.True(service.TryGoBack());
-        Assert.Equal(PageKey.Home, service.Current);
+        Assert.Equal(PageKey.Landing, service.Current);
         Assert.False(service.CanGoBack);
     }
 }

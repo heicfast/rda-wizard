@@ -1,25 +1,22 @@
 namespace RdaWizard.Core.Wizard;
 
 /// <summary>
-/// The wizard transition table. Every legal edge is declared with an
-/// optional guard; anything not declared is refused with a reason string so
-/// the UI can *explain* unavailability instead of shipping dead buttons
-/// (standing rule: truthful degradation).
-///
-/// Graph (docs/UI-MAP.md §4, clean-room reduction):
+/// The wizard transition table, mirroring the OG user flow (RE corpus
+/// userflow-state-machine + dynamic ground truth):
 /// <code>
-///            ┌──────────── session import (.crsf) ────────────┐
-///            ▼                                               │
-///  Select ──► Configure ──► Scanning ──► Results ──► Recovering ──► Complete
-///    ▲          │    ▲          │  │        │  ▲        │           │
-///    │          │    └── back ──┘  │        │  └─back───┘           │
-///    │          │                  │        │           │ cancel    │
-///    │          └────── back ──────┘   cancel│           │ (partial) │
-///    └──────────── new scan / finish ─────────┴───────────┴──────────┘
+///            ┌──────── session import (.crsf) ──────────┐
+///            ▼                                         │
+///  Select ──► Scanning ──► Results ──► Recovering ──► Results
+///    ▲          │  ▲          │  ▲         │  ▲           (result dialog)
+///    │          │  └─ quick pass done (two-phase: results visible,
+///    │          │     advanced continues — state stays Scanning)  │
+///    │          │                │        │ cancel     │
+///    │          └── stop ─────────┘        └────────────┘
+///    └──────────── new scan / finish ──────────────────┘
 /// </code>
-/// Cancel from Scanning returns to Select (results are discarded — core has
-/// no save-on-cancel, gap G-07). Cancel from Recovering returns to Results
-/// with a partial-recovery report (files already written stay on disk).
+/// The OG has no scan-configuration step: "Search for Lost Data" starts the
+/// scan immediately on the Detail page (two-phase: quick pass → advanced).
+/// Recovery is a modal dialog family launched from the Detail page.
 /// </summary>
 public sealed class WizardStateMachine
 {
@@ -30,27 +27,27 @@ public sealed class WizardStateMachine
 
     private readonly List<Edge> _edges = new()
     {
-        new(WizardState.Select, WizardState.Configure, "BeginScanSetup", static c =>
-            c.HasScanTarget ? null : "Select a disk, volume, or a saved scan session first."),
+        // "Search for Lost Data" CTA → scan starts immediately (OG scanClickedSlot).
+        new(WizardState.Select, WizardState.Scanning, "StartScan", static c =>
+            c.HasScanTarget ? null : "Select a location to search for lost data first."),
 
+        // Landing "Continue last scanning" (P41) / explicit session import.
         new(WizardState.Select, WizardState.Results, "ImportSession", static c =>
             c.HasLoadedSession ? null : "Load a scan session (.crsf) first."),
 
-        new(WizardState.Configure, WizardState.Select, "BackToSelect", static _ => null),
+        // Stop-scan confirmed (OG CScanCommonPopDlg "Stop Searching for Lost Data?").
+        new(WizardState.Scanning, WizardState.Select, "StopScan", static c =>
+            c.CancelConfirmed ? null : "Confirm the stop: results found so far are discarded."),
 
-        new(WizardState.Configure, WizardState.Scanning, "StartScan", static c =>
-            c.HasScanTarget ? null : "No scan target selected."),
-
+        // Advanced scan finished → results (OG celebration → "Go to Recover").
         new(WizardState.Scanning, WizardState.Results, "ScanCompleted", static c =>
             c.HasLoadedSession ? null : "Scan has not produced a session yet."),
 
-        new(WizardState.Scanning, WizardState.Select, "CancelScan", static c =>
-            c.CancelConfirmed ? null : "Confirm the cancel: results found so far are lost (the engine cannot save a partial scan)."),
-
-        new(WizardState.Results, WizardState.Configure, "ChangeScanSetup", static _ => null),
-
+        // Cancel from results → landing (the engine saved the session; landing
+        // banner offers to continue it).
         new(WizardState.Results, WizardState.Select, "BackToSelect", static _ => null),
 
+        // Recovery funnel launched from the Detail page (OG ChooseDestinationPathDialog).
         new(WizardState.Results, WizardState.Recovering, "StartRecovery", static c =>
         {
             if (!c.HasLoadedSession) return "Load or complete a scan first.";
@@ -59,14 +56,10 @@ public sealed class WizardStateMachine
             return null;
         }),
 
-        new(WizardState.Recovering, WizardState.Complete, "RecoveryFinished", static _ => null),
+        new(WizardState.Recovering, WizardState.Results, "RecoveryFinished", static _ => null),
 
         new(WizardState.Recovering, WizardState.Results, "CancelRecovery", static c =>
             c.CancelConfirmed ? null : "Confirm the cancel: files already written remain in the destination."),
-
-        new(WizardState.Complete, WizardState.Results, "BackToResults", static _ => null),
-
-        new(WizardState.Complete, WizardState.Select, "Finish", static _ => null),
     };
 
     private WizardState _state = WizardState.Select;
@@ -95,11 +88,7 @@ public sealed class WizardStateMachine
         return names;
     }
 
-    /// <summary>Attempts a named transition. Returns the refusal reason on failure, null on success.
-    /// Edge names may be shared by multiple (from,to) pairs — e.g. BackToSelect
-    /// exists from both Configure and Results — so every edge with the name is
-    /// considered; only when none starts at the current state is the
-    /// "not available right now" reason returned.</summary>
+    /// <summary>Attempts a named transition. Returns the refusal reason on failure, null on success.</summary>
     public string? TryTransition(string edgeName, WizardContext context)
     {
         var anyNameMatch = false;

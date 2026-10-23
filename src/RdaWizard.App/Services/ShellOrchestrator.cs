@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RdaWizard.Core.Models;
 using RdaWizard.Core.Navigation;
@@ -11,31 +10,29 @@ using RdaWizard.Core.Wizard;
 namespace RdaWizard.App.Services;
 
 /// <summary>
-/// The flow glue between page ViewModels and the wizard state machine:
-/// VM events (session loaded, scan started/completed, recovery finished)
-/// become guarded state transitions + navigation. Session paths for each
-/// scan run are generated and tracked (SessionSourceRegistry feeds the
-/// overlap gate's source-disk resolution).
+/// The flow glue between page ViewModels and the wizard state machine,
+/// mirroring the og wiring (DrwMainViewManagerWizard): the landing CTA fires
+/// scanClickedSlot → StartScan transition → scan starts ON the Detail page;
+/// scan completion installs the session into the Detail results browser;
+/// recovery is a modal family launched from the Detail page's Recover CTA.
+/// Session paths for each scan run are generated and tracked
+/// (SessionSourceRegistry feeds the overlap gate's source-disk resolution).
 /// </summary>
 public sealed class ShellOrchestrator : IDisposable
 {
     private readonly ILogger<ShellOrchestrator> _logger;
-    private readonly IServiceProvider _services;
     private readonly ISessionService _sessions;
     private readonly IDialogService _dialogs;
 
     private MainViewModel _main = null!;
     private CancellationTokenSource _flowCancellation = new();
-    private ScanOptions? _activeScanOptions;
 
     public ShellOrchestrator(
         ILogger<ShellOrchestrator> logger,
-        IServiceProvider services,
         ISessionService sessions,
         IDialogService dialogs)
     {
         _logger = logger;
-        _services = services;
         _sessions = sessions;
         _dialogs = dialogs;
     }
@@ -44,75 +41,89 @@ public sealed class ShellOrchestrator : IDisposable
     {
         _main = main;
 
-        _main.Home.SessionLoaded += OnSessionLoaded;
-        _main.ScanConfig.ScanStarted += OnScanStarted;
-        _main.ScanProgress.ScanCompleted += OnScanCompleted;
-        _main.ScanProgress.ScanFailed += OnScanFailed;
+        _main.Landing.ScanRequested += OnScanRequested;
+        _main.Landing.SessionLoaded += OnSessionLoaded;
+        _main.Detail.ScanCompleted += OnScanCompleted;
+        _main.Detail.ScanFailed += OnScanFailed;
+        _main.Detail.RecoverRequested += OnRecoverRequested;
         _main.Recovery.RecoveryCompleted += OnRecoveryCompleted;
         _main.Recovery.RecoveryCancelled += OnRecoveryCancelled;
-        CompletionViewModel.OpenDestinationRequested += path => OpenInExplorer(path);
+        _main.MoreTools.ToolActivated += OnToolActivated;
+        _main.FileRepair.VolumeRepairRequested += OnVolumeRepairRequested;
+        _main.LostPartition.StartRequested += OnLostPartitionStartRequested;
         AboutViewModel.LicensesRequested += () => ShowLicenses();
 
-        _logger.LogInformation("Shell orchestrator wired");
+        _logger.LogInformation("Shell orchestrator wired (og shell model)");
     }
 
-    /// <summary>Home: BeginScanSetup transition + navigate to config.</summary>
-    public async Task BeginScanSetupAsync()
+    /// <summary>Landing CTA ("Search for Lost Data"): StartScan transition → scan starts immediately on the Detail page.</summary>
+    public async Task StartScanAsync(ScanTarget target)
     {
+        if (target is null)
+        {
+            await _dialogs.AlertAsync("Start a scan", "Select a location to search for lost data first.").ConfigureAwait(true);
+            return;
+        }
+
         var context = CurrentContext();
-        var reason = _main.ExecuteTransition("BeginScanSetup", context);
+        var reason = _main.ExecuteTransition("StartScan", context);
         if (reason is not null)
         {
             await _dialogs.AlertAsync("Start a scan", reason).ConfigureAwait(true);
             return;
         }
-        _main.ScanConfig.Initialize(_main.Home.SelectedTarget!);
-        _main.NavigateForState();
-    }
 
-    /// <summary>Config: StartScan transition + launch the engine scan.</summary>
-    public async Task StartScanAsync()
-    {
-        var sessionPath = await BuildSessionPathAsync(_main.ScanConfig.Target!).ConfigureAwait(true);
+        var sessionPath = await BuildSessionPathAsync(target).ConfigureAwait(true);
         var stageLogPath = Path.ChangeExtension(sessionPath, ".stage.log");
 
-        var options = _main.ScanConfig.StartScan(sessionPath, stageLogPath);
-        SessionSourceRegistry.Record(sessionPath, options.Target.DiskIndex);
-
-        var reason = _main.ExecuteTransition("StartScan", CurrentContext());
-        if (reason is not null)
+        // The og has no scan-configuration step: default mode (deep + carve),
+        // engine-default threads, no engine-side name filter — all refinement
+        // happens client-side in the results browser (og filter bar).
+        var options = new ScanOptions
         {
-            await _dialogs.AlertAsync("Start a scan", reason).ConfigureAwait(true);
-            return;
-        }
+            Target = target,
+            Mode = ScanMode.DeepPlusCarve,
+            SessionPath = sessionPath,
+            StageLogPath = stageLogPath,
+        };
+        SessionSourceRegistry.Record(sessionPath, target.DiskIndex);
 
         _main.NavigateForState();
-        _activeScanOptions = options;
 
         _flowCancellation.Dispose();
         _flowCancellation = new CancellationTokenSource();
-        _ = _main.ScanProgress.RunScanAsync(options, _flowCancellation.Token);
+        _ = _main.Detail.RunScanAsync(options, _flowCancellation.Token);
     }
 
-    /// <summary>Progress page: cancel-with-confirmation then CancelScan transition.</summary>
-    public async Task CancelScanAsync()
+    /// <summary>Detail page stop request: og stop-confirm ("Stop Searching for Lost Data?") then StopScan transition.</summary>
+    public async Task StopScanAsync()
     {
-        var confirmed = await _main.ScanProgress.ConfirmCancelAsync().ConfigureAwait(true);
-        if (!confirmed)
+        var confirmed = await _dialogs.ConfirmAsync(
+            "Stop Searching for Lost Data?",
+            "Remaining data can be rescanned and recovered anytime later, but continuing now saves you time.",
+            "Stop",
+            destructive: true).ConfigureAwait(true);
+        if (confirmed != DialogResult.Confirmed)
         {
             return;
         }
 
-        _main.ScanProgress.CancelScan();
+        _main.Detail.CancelScan();
         // The ScanFailed event fires with "cancelled"; the handler routes home.
     }
 
-    /// <summary>Results: StartRecovery transition with the overlap gate context.</summary>
-    public async Task StartRecoveryAsync()
+    /// <summary>Recovery funnel: preflight + StartRecovery transition + modal recovery run.</summary>
+    public async Task StartRecoveryAsync(RecoveryRequestKind kind)
     {
-        if (_main.Results.Session is null)
+        if (_main.Detail.Session is null)
         {
             await _dialogs.AlertAsync("Recover files", "Load or complete a scan first.").ConfigureAwait(true);
+            return;
+        }
+
+        if (kind == RecoveryRequestKind.Selection && _main.Detail.SelectedNodes.Count == 0)
+        {
+            await _dialogs.AlertAsync("Recover files", "Select at least one file to recover.").ConfigureAwait(true);
             return;
         }
 
@@ -121,8 +132,13 @@ public sealed class ShellOrchestrator : IDisposable
             await PickDestinationAsync().ConfigureAwait(true);
         }
 
+        if (string.IsNullOrWhiteSpace(_main.Recovery.DestinationDirectory))
+        {
+            return; // user dismissed the picker
+        }
+
         // Preflight first: it computes the overlap gate the transition guard checks.
-        await _main.Recovery.RunPreflightAsync(_main.Results.Session, _flowCancellation.Token).ConfigureAwait(true);
+        await _main.Recovery.RunPreflightAsync(_main.Detail.Session, _flowCancellation.Token).ConfigureAwait(true);
         if (_main.Recovery.PreflightRefusals.Count > 0)
         {
             // Hard gate (ADR-7): refuse with the reasons before any transition.
@@ -140,14 +156,14 @@ public sealed class ShellOrchestrator : IDisposable
             return;
         }
 
-        _main.NavigateForState();
+        ShowRecoveryProgress();
         _ = _main.Recovery.RecoverAsync(_flowCancellation.Token);
     }
 
     /// <summary>Destination picker + immediate preflight re-run (browse button path).</summary>
     public async Task PickDestinationAsync()
     {
-        if (_main.Results.Session is null)
+        if (_main.Detail.Session is null)
         {
             await _dialogs.AlertAsync("Recover files", "Load or complete a scan first.").ConfigureAwait(true);
             return;
@@ -160,7 +176,7 @@ public sealed class ShellOrchestrator : IDisposable
         }
 
         _main.Recovery.DestinationDirectory = picked;
-        await _main.Recovery.RunPreflightAsync(_main.Results.Session, _flowCancellation.Token).ConfigureAwait(true);
+        await _main.Recovery.RunPreflightAsync(_main.Detail.Session, _flowCancellation.Token).ConfigureAwait(true);
     }
 
     /// <summary>Recovering: cancel-with-confirmation.</summary>
@@ -171,40 +187,28 @@ public sealed class ShellOrchestrator : IDisposable
             "Files already written remain in the destination folder. Cancel the remaining recovery?",
             "Cancel recovery",
             destructive: true).ConfigureAwait(true);
-        if (confirmed != Core.Services.DialogResult.Confirmed)
+        if (confirmed != DialogResult.Confirmed)
         {
             return;
         }
         _main.Recovery.CancelRecovery();
     }
 
-    /// <summary>Completion: Finish → reset wizard for a new run.</summary>
+    /// <summary>Result dialog: Finish → reset wizard for a new run.</summary>
     public async Task FinishAsync()
     {
-        var reason = _main.ExecuteTransition("Finish", CurrentContext());
-        if (reason is not null)
-        {
-            await _dialogs.AlertAsync("Finish", reason).ConfigureAwait(true);
-            return;
-        }
         _main.ResetWizard();
+        await Task.CompletedTask.ConfigureAwait(true);
     }
 
-    /// <summary>Completion: back to results to recover more files.</summary>
-    public async Task BackToResultsAsync()
+    private async void OnScanRequested(object? sender, ScanTarget target)
     {
-        var reason = _main.ExecuteTransition("BackToResults", CurrentContext());
-        if (reason is not null)
-        {
-            await _dialogs.AlertAsync("Back to results", reason).ConfigureAwait(true);
-            return;
-        }
-        _main.NavigateForState();
+        await StartScanAsync(target).ConfigureAwait(true);
     }
 
     private async void OnSessionLoaded(object? sender, LoadedSession session)
     {
-        // ImportSession edge → Results directly (skips scan).
+        // ImportSession edge → Detail results directly (skips scan).
         var context = CurrentContext();
         var reason = _main.ExecuteTransition("ImportSession", context);
         if (reason is not null)
@@ -212,20 +216,8 @@ public sealed class ShellOrchestrator : IDisposable
             await _dialogs.AlertAsync("Open session", reason).ConfigureAwait(true);
             return;
         }
-        _main.Results.InstallSession(session);
+        _main.Detail.InstallSession(session);
         _main.NavigateForState();
-    }
-
-    private async void OnScanStarted(object? sender, ScanOptions options)
-    {
-        // ScanConfig fires ScanStarted through StartScan(); orchestrator
-        // handles transitions itself — this handler is a safety no-op when
-        // invoked via StartScanAsync.
-        if (ReferenceEquals(options, _activeScanOptions))
-        {
-            return;
-        }
-        await StartScanAsync().ConfigureAwait(true);
     }
 
     private async void OnScanCompleted(object? sender, ScanSummary summary)
@@ -237,11 +229,11 @@ public sealed class ShellOrchestrator : IDisposable
             return;
         }
 
-        // Load the freshly written session into the results VM.
+        // Load the freshly written session into the Detail results browser.
         var loaded = await _sessions.LoadAsync(summary.SessionPath ?? string.Empty).ConfigureAwait(true);
         if (loaded.Success && loaded.Session is { } session)
         {
-            _main.Results.InstallSession(session, _main.ScanConfig.SelectedCategories);
+            _main.Detail.InstallSession(session);
         }
         else
         {
@@ -249,36 +241,41 @@ public sealed class ShellOrchestrator : IDisposable
             await _dialogs.AlertAsync(
                 "Scan finished",
                 "The scan finished but reading its results failed: " + loaded.Diagnostic).ConfigureAwait(true);
-            _main.ExecuteTransition("CancelScan", CurrentContext() with { CancelConfirmed = true });
+            _main.ExecuteTransition("BackToSelect", CurrentContext());
         }
         _main.NavigateForState();
     }
 
     private async void OnScanFailed(object? sender, string diagnostic)
     {
-        // Cancel route: state → Select; failures also return Home.
+        // Stop route: state → Select; failures also return to the landing.
         var context = CurrentContext() with { CancelConfirmed = true };
-        _main.ExecuteTransition("CancelScan", context);
+        _main.ExecuteTransition("StopScan", context);
         _main.NavigateForState();
         await _dialogs.AlertAsync("Scan stopped", diagnostic).ConfigureAwait(true);
     }
 
+    private async void OnRecoverRequested(object? sender, RecoveryRequestKind kind)
+    {
+        await StartRecoveryAsync(kind).ConfigureAwait(true);
+    }
+
     private async void OnRecoveryCompleted(object? sender, RecoverySummary summary)
     {
+        CloseRecoveryProgress();
         var reason = _main.ExecuteTransition("RecoveryFinished", CurrentContext());
         if (reason is not null)
         {
             await _dialogs.AlertAsync("Recovery finished", reason).ConfigureAwait(true);
             return;
         }
-
-        var reportPath = Path.Combine(_main.Recovery.DestinationDirectory ?? ".", "recovery-report.txt");
-        _main.Completion.Install(summary, _main.Recovery.DestinationDirectory ?? string.Empty, reportPath);
         _main.NavigateForState();
+        ShowRecoveryResult(summary);
     }
 
     private async void OnRecoveryCancelled(object? sender, RecoverySummary summary)
     {
+        CloseRecoveryProgress();
         var context = CurrentContext() with { CancelConfirmed = true };
         var reason = _main.ExecuteTransition("CancelRecovery", context);
         if (reason is not null)
@@ -286,15 +283,88 @@ public sealed class ShellOrchestrator : IDisposable
             await _dialogs.AlertAsync("Recovery cancelled", reason).ConfigureAwait(true);
             return;
         }
-        _main.Completion.Install(summary, _main.Recovery.DestinationDirectory ?? string.Empty, null);
         _main.NavigateForState();
+        ShowRecoveryResult(summary);
+    }
+
+    private void ShowRecoveryProgress()
+    {
+        PostOnUi(() =>
+        {
+            CloseRecoveryProgress();
+            _recoveryProgressDialog = new Dialogs.RecoveryProgressDialog
+            {
+                Owner = System.Windows.Application.Current?.MainWindow,
+                DataContext = _main.Recovery,
+            };
+            _recoveryProgressDialog.Show();
+        });
+    }
+
+    private void CloseRecoveryProgress()
+    {
+        PostOnUi(() =>
+        {
+            _recoveryProgressDialog?.Close();
+            _recoveryProgressDialog = null;
+        });
+    }
+
+    private void ShowRecoveryResult(RecoverySummary summary)
+    {
+        PostOnUi(() =>
+        {
+            var dialog = new Dialogs.RecoveryResultDialog(summary, _main.Recovery.DestinationDirectory ?? string.Empty)
+            {
+                Owner = System.Windows.Application.Current?.MainWindow,
+            };
+            dialog.ShowDialog();
+        });
+    }
+
+    private Dialogs.RecoveryProgressDialog? _recoveryProgressDialog;
+
+    private static void PostOnUi(Action action)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            action();
+        }
+        else
+        {
+            dispatcher.Invoke(action);
+        }
+    }
+
+    private void OnToolActivated(object? sender, MoreToolsViewModel.ToolCard tool)
+    {
+        if (tool.IsAvailableInThisBuild && tool.Title == "Disk Health")
+        {
+            // Opens with physical disk 0; the disk selector arrives with the
+            // Health page rebuild (og "Which disk do you care about?").
+            _ = _main.Health.OpenAsync(0, CancellationToken.None);
+            _main.TryOpenAuxiliary(PageKey.Health);
+        }
+    }
+
+    private void OnVolumeRepairRequested(object? sender, EventArgs e)
+    {
+        _main.TryOpenAuxiliary(PageKey.Repair);
+    }
+
+    private void OnLostPartitionStartRequested(object? sender, EventArgs e)
+    {
+        // The lost-partition flow starts from a whole-disk deep scan: route to
+        // the landing with the disk list (the user picks the disk to scan).
+        _main.TryOpenAuxiliary(PageKey.Landing);
     }
 
     private WizardContext CurrentContext() => new()
     {
-        HasScanTarget = _main.Home.SelectedTarget is not null,
-        HasLoadedSession = _main.Results.Session is not null,
-        HasRecoverySelection = _main.Results.SelectedNodes.Count > 0,
+        HasScanTarget = _main.Landing.SelectedTarget is not null,
+        HasLoadedSession = _main.Detail.Session is not null,
+        HasRecoverySelection = _main.Detail.SelectedNodes.Count > 0,
         DestinationOverlapCheckPassed = _main.Recovery.PreflightRefusals.Count == 0 &&
                                         _main.Recovery.DestinationDirectory is not null,
         CancelConfirmed = false,
@@ -311,19 +381,6 @@ public sealed class ShellOrchestrator : IDisposable
         _logger.LogInformation("Session path allocated: {Path}", path);
         await Task.CompletedTask.ConfigureAwait(true);
         return path;
-    }
-
-    private static void OpenInExplorer(string path)
-    {
-        if (!Directory.Exists(path))
-        {
-            return;
-        }
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = path,
-            UseShellExecute = true,
-        });
     }
 
     private static void ShowLicenses()

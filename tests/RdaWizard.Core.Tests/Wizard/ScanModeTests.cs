@@ -32,13 +32,4 @@ public class ScanModeTests
         }
     }
 
-    [Fact]
-    public void Phase_Extension_CoversAllStates()
-    {
-        foreach (WizardState state in Enum.GetValues<WizardState>())
-        {
-            // Must not throw.
-            _ = state.Phase();
-        }
-    }
 }

@@ -229,6 +229,21 @@
         </Setter>
     </Style>
 
+    <!-- Focus ring (alias used by sidebar/menu/chrome items). -->
+    <Style x:Key="Focus.Ring">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="1"
+                               SnapsToDevicePixels="True"
+                               Stroke="{DynamicResource Brush.Border.Focus}"
+                               StrokeThickness="2"
+                               RadiusX="4" RadiusY="4" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Focus visual: 2px brand ring with 2px offset (a11y — DRW suppressed outlines; we repair that). -->
     <Style x:Key="FocusVisual.Primary">
         <Setter Property="Control.Template">

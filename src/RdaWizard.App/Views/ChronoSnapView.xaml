@@ -1,0 +1,47 @@
+<UserControl x:Class="RdaWizard.App.Views.ChronoSnapView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="900">
+
+    <!-- og PG-24 (screenshot: 02-landing/landing-sidebar-chronosnap-page.png):
+         "Time Machine for Windows" + feature cards + Start CTA. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,28,40,24" MaxWidth="720" HorizontalAlignment="Left">
+            <TextBlock Style="{DynamicResource Text.Title}" Text="{Binding Title}" />
+            <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                       Margin="0,8,0,0"
+                       TextWrapping="Wrap"
+                       Text="Snapshots capture your files as you work so you can go back to any point in time." />
+
+            <ItemsControl ItemsSource="{Binding Features}" Margin="0,24,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="16"
+                                Margin="0,0,0,12"
+                                CornerRadius="{DynamicResource Radius.Card}"
+                                Background="{DynamicResource Brush.Bg.Card}"
+                                BorderBrush="{DynamicResource Brush.Border.Default}"
+                                BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="{Binding Title}" />
+                                <TextBlock Style="{DynamicResource Text.Caption}"
+                                           Margin="0,4,0,0"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Description}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Style="{DynamicResource Text.Caption}"
+                       Margin="0,8,0,0"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Text="ChronoSnap Backup is a companion feature of the original product. This build focuses on data recovery; backup scheduling is not part of it." />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

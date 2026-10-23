@@ -1,7 +1,6 @@
 <Window x:Class="RdaWizard.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
         xmlns:vm="clr-namespace:RdaWizard.Core.ViewModels;assembly=RdaWizard.Core"
         xmlns:views="clr-namespace:RdaWizard.App.Views"
         Title="RDA Data Recovery Wizard"
@@ -16,25 +15,37 @@
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
 
+    <!--
+      OG shell (DrwMainWindow): custom frameless chrome — ~35px title bar with
+      window controls, 6-entry sidebar in 3 sections, stacked page host. No
+      stepper, no persistent status bar (removed per og-parity directive).
+      Sidebar geometry: rows ~54px apart; sections "Data Recovery" /
+      "Advanced Features" / "File Backup" (atlas 02-landing).
+    -->
+
     <Window.Resources>
+        <conv:EnumNameMatchConverter x:Key="PageKeyEquals" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
         <!-- Page ViewModels map to Views (typed DataTemplates). -->
-        <DataTemplate DataType="{x:Type vm:HomeViewModel}">
-            <views:HomeView />
+        <DataTemplate DataType="{x:Type vm:LandingViewModel}">
+            <views:LandingView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ScanConfigViewModel}">
-            <views:ScanConfigView />
+        <DataTemplate DataType="{x:Type vm:DetailViewModel}">
+            <views:DetailView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ScanProgressViewModel}">
-            <views:ScanProgressView />
+        <DataTemplate DataType="{x:Type vm:SdCardViewModel}">
+            <views:SdCardView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ResultsViewModel}">
-            <views:ResultsView />
+        <DataTemplate DataType="{x:Type vm:MoreToolsViewModel}">
+            <views:MoreToolsView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:RecoveryViewModel}">
-            <views:RecoveryView />
+        <DataTemplate DataType="{x:Type vm:FileRepairPageViewModel}">
+            <views:FileRepairView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:CompletionViewModel}">
-            <views:CompletionView />
+        <DataTemplate DataType="{x:Type vm:LostPartitionViewModel}">
+            <views:LostPartitionView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChronoSnapViewModel}">
+            <views:ChronoSnapView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:HealthViewModel}">
             <views:HealthView />
@@ -50,85 +61,243 @@
         </DataTemplate>
     </Window.Resources>
 
-    <DockPanel>
-        <!-- ===== Top bar: brand + stepper + aux navigation ===== -->
-        <Border DockPanel.Dock="Top"
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="35"
+                      ResizeBorderThickness="6"
+                      CornerRadius="0"
+                      GlassFrameThickness="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ===== Title bar (~35px): brand + window controls ===== -->
+        <Border Grid.Row="0"
+                Height="35"
                 Background="{DynamicResource Brush.Bg.Window}"
                 BorderBrush="{DynamicResource Brush.Border.Hairline}"
-                BorderThickness="0,0,0,1"
-                Padding="24,10,24,10">
+                BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+
+                <!-- Brand lockup (left) -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                     <TextBlock Text="RDA"
                                FontFamily="{DynamicResource Font.Family}"
-                               FontSize="{DynamicResource Font.Size.Subtitle}"
+                               FontSize="{DynamicResource Font.Size.Body}"
                                FontWeight="Bold"
                                Foreground="{DynamicResource Brush.Brand.Primary}"
                                Margin="0,0,6,0" />
                     <TextBlock Text="Data Recovery Wizard"
                                FontFamily="{DynamicResource Font.Family}"
-                               FontSize="{DynamicResource Font.Size.Subtitle}"
-                               FontWeight="SemiBold"
+                               FontSize="{DynamicResource Font.Size.Body}"
                                Foreground="{DynamicResource Brush.Text.Primary}" />
                 </StackPanel>
-                <controls:WizardStepper Grid.Column="1"
-                                        HorizontalAlignment="Center"
-                                        CurrentStep="{Binding StepIndex, Mode=OneWay}" />
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="SettingsButton"
-                            Content="Settings"
-                            Style="{DynamicResource {x:Type Button}}"
-                            Height="{DynamicResource Height.XS}"
-                            Padding="12,4"
-                            Margin="0,0,8,0"
-                            Click="OnSettingsClick" />
-                    <Button x:Name="AboutButton"
-                            Content="About"
-                            Style="{DynamicResource {x:Type Button}}"
-                            Height="{DynamicResource Height.XS}"
-                            Padding="12,4"
-                            Click="OnAboutClick" />
+
+                <!-- Window controls (right): hamburger + min + max + close -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button x:Name="MenuButton"
+                            Width="42" Height="35"
+                            Click="OnMenuClick"
+                            ToolTip="Menu"
+                            AutomationProperties.Name="Menu">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.CardHover}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Path Width="14" Height="10"
+                              Stroke="{DynamicResource Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              Data="M 0,1 H 14 M 0,5 H 14 M 0,9 H 14" />
+                    </Button>
+                    <Button x:Name="MinButton"
+                            Width="42" Height="35"
+                            Click="OnMinimizeClick"
+                            ToolTip="Minimize"
+                            AutomationProperties.Name="Minimize">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.CardHover}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Path Width="12" Height="1"
+                              Stroke="{DynamicResource Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              Data="M 0,0 H 12" />
+                    </Button>
+                    <Button x:Name="MaxButton"
+                            Width="42" Height="35"
+                            Click="OnMaximizeClick"
+                            ToolTip="Maximize"
+                            AutomationProperties.Name="Maximize">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Bg.CardHover}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Path Width="11" Height="10"
+                              Stroke="{DynamicResource Brush.Text.Primary}"
+                              StrokeThickness="1.2"
+                              Data="M 0.6,1.2 H 10.4 V 8.8 H 0.6 Z" />
+                    </Button>
+                    <Button x:Name="CloseButton"
+                            Width="42" Height="35"
+                            Click="OnCloseClick"
+                            ToolTip="Close"
+                            AutomationProperties.Name="Close">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd" Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Status.DangerFill}" />
+                                        <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource Brush.Text.Inverse}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Path Width="11" Height="11"
+                              Stroke="{DynamicResource Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              Data="M 0,0 L 11,11 M 11,0 L 0,11" />
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ===== Bottom status bar: driver + engine truth ===== -->
-        <Border DockPanel.Dock="Bottom"
-                Background="{DynamicResource Brush.Bg.Window}"
-                BorderBrush="{DynamicResource Brush.Border.Hairline}"
-                BorderThickness="0,1,0,0"
-                Padding="24,8,24,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           Style="{DynamicResource Text.Caption}"
-                           Text="{Binding Home.Driver.TransportLabel, Mode=OneWay}"
-                           VerticalAlignment="Center" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8"
-                             Fill="{DynamicResource Brush.Health.Good}"
-                             Margin="0,0,6,0"
-                             VerticalAlignment="Center" />
-                    <TextBlock Style="{DynamicResource Text.Caption}"
-                               VerticalAlignment="Center">
-                        <Run Text="Ready" />
-                    </TextBlock>
-                </StackPanel>
-            </Grid>
-        </Border>
+        <!-- ===== Body: sidebar + page host ===== -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <!-- ===== Page region ===== -->
-        <Border Background="{DynamicResource Brush.Bg.Canvas}"
-                Padding="{DynamicResource Space.Page}">
-            <ContentControl Content="{Binding CurrentPageViewModel, Mode=OneWay}" />
-        </Border>
-    </DockPanel>
+            <!-- Sidebar (6 entries in 3 sections; rows ~54px) -->
+            <Border Grid.Column="0"
+                    Width="240"
+                    Background="{DynamicResource Brush.Bg.Sidebar}"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                    BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,20,12,20">
+
+                        <TextBlock Text="Data Recovery"
+                                   Style="{DynamicResource Text.SidebarHeader}"
+                                   Margin="12,0,0,0" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=Landing, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Landing"
+                                     Content="Hardware Disk" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=SdCard, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="SdCard"
+                                     Content="SD Card" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=MoreTools, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="MoreTools"
+                                     Content="More Recovery Tools" />
+
+                        <TextBlock Text="Advanced Features"
+                                   Style="{DynamicResource Text.SidebarHeader}"
+                                   Margin="12,16,0,0" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=FileRepair, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="FileRepair"
+                                     Content="File Repair" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=LostPartition, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="LostPartition"
+                                     Content="Lost Partition Rescue" />
+
+                        <TextBlock Text="File Backup"
+                                   Style="{DynamicResource Text.SidebarHeader}"
+                                   Margin="12,16,0,0" />
+                        <RadioButton GroupName="Sidebar"
+                                     Style="{DynamicResource Sidebar.Item}"
+                                     IsChecked="{Binding CurrentPage, Converter={StaticResource PageKeyEquals}, ConverterParameter=ChronoSnap, Mode=OneWay}"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="ChronoSnap"
+                                     Content="ChronoSnap Backup" />
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Page host -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource Brush.Bg.Canvas}">
+                <ContentControl Content="{Binding CurrentPageViewModel, Mode=OneWay}" />
+            </Border>
+        </Grid>
+
+        <!-- ===== Hamburger menu popup ===== -->
+        <Popup x:Name="MenuPopup"
+               PlacementTarget="{Binding ElementName=MenuButton}"
+               Placement="Bottom"
+               HorizontalOffset="-140"
+               VerticalOffset="2"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade">
+            <Border Width="186"
+                    Background="{DynamicResource Brush.Bg.Window}"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource Radius.Control}"
+                    Padding="4"
+                    Margin="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.18" Color="#0A0A1E" />
+                </Border.Effect>
+                <StackPanel>
+                    <Button Style="{DynamicResource Menu.Item}" Content="Settings" Click="OnSettingsClick" />
+                    <Button Style="{DynamicResource Menu.Item}" Content="Check for Updates" Click="OnUpdatesClick" />
+                    <Separator Style="{DynamicResource Menu.Separator}" />
+                    <Button Style="{DynamicResource Menu.Item}" Content="About" Click="OnAboutClick" />
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
 </Window>

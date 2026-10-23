@@ -27,12 +27,12 @@ public class WizardStateMachineTests
     }
 
     [Fact]
-    public void HappyPath_Select_Configure_Scanning_Results_Recovering_Complete()
+    public void HappyPath_Select_Scanning_Results_Recovering_Results()
     {
+        // The og flow: the landing CTA starts the scan immediately (no
+        // Configure step); completion lands in Results; recovery is a modal
+        // that returns to Results.
         var machine = new WizardStateMachine();
-
-        Assert.Null(machine.TryTransition("BeginScanSetup", Context(target: true)));
-        Assert.Equal(WizardState.Configure, machine.State);
 
         Assert.Null(machine.TryTransition("StartScan", Context(target: true)));
         Assert.Equal(WizardState.Scanning, machine.State);
@@ -44,17 +44,17 @@ public class WizardStateMachineTests
         Assert.Equal(WizardState.Recovering, machine.State);
 
         Assert.Null(machine.TryTransition("RecoveryFinished", Context()));
-        Assert.Equal(WizardState.Complete, machine.State);
+        Assert.Equal(WizardState.Results, machine.State);
     }
 
     [Fact]
-    public void BeginScanSetup_RefusedWithoutTarget_WithReason()
+    public void StartScan_RefusedWithoutTarget_WithReason()
     {
         var machine = new WizardStateMachine();
-        var reason = machine.TryTransition("BeginScanSetup", Context(target: false));
+        var reason = machine.TryTransition("StartScan", Context(target: false));
 
         Assert.NotNull(reason);
-        Assert.Contains("Select a disk", reason, StringComparison.Ordinal);
+        Assert.Contains("Select a location", reason, StringComparison.Ordinal);
         Assert.Equal(WizardState.Select, machine.State);
     }
 
@@ -62,7 +62,6 @@ public class WizardStateMachineTests
     public void StartRecovery_RefusedWithoutSelection()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
         machine.TryTransition("ScanCompleted", Context(session: true));
 
@@ -76,7 +75,6 @@ public class WizardStateMachineTests
     public void StartRecovery_HardRefused_WhenDestinationOverlapsSource()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
         machine.TryTransition("ScanCompleted", Context(session: true));
 
@@ -88,18 +86,17 @@ public class WizardStateMachineTests
     }
 
     [Fact]
-    public void CancelScan_RefusedUntilConfirmed()
+    public void StopScan_RefusedUntilConfirmed()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
 
-        var reason = machine.TryTransition("CancelScan", Context(cancelConfirmed: false));
+        var reason = machine.TryTransition("StopScan", Context(cancelConfirmed: false));
         Assert.NotNull(reason);
-        Assert.Contains("Confirm the cancel", reason, StringComparison.Ordinal);
+        Assert.Contains("Confirm the stop", reason, StringComparison.Ordinal);
         Assert.Equal(WizardState.Scanning, machine.State);
 
-        Assert.Null(machine.TryTransition("CancelScan", Context(cancelConfirmed: true)));
+        Assert.Null(machine.TryTransition("StopScan", Context(cancelConfirmed: true)));
         Assert.Equal(WizardState.Select, machine.State);
     }
 
@@ -107,7 +104,6 @@ public class WizardStateMachineTests
     public void ScanCompleted_RefusedWithoutSession()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
 
         var reason = machine.TryTransition("ScanCompleted", Context(session: false));
@@ -136,17 +132,16 @@ public class WizardStateMachineTests
     public void WrongStateTransition_ReturnsReason()
     {
         var machine = new WizardStateMachine();
-        // RecoveringFinished from Select is illegal.
+        // RecoveryFinished from Select is illegal.
         var reason = machine.TryTransition("RecoveryFinished", Context());
         Assert.NotNull(reason);
         Assert.Contains("not available right now", reason, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void BackNavigation_ChangeScanSetup_AndBackToSelect()
+    public void BackToSelect_FromResults()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
         machine.TryTransition("ScanCompleted", Context(session: true));
 
@@ -158,7 +153,6 @@ public class WizardStateMachineTests
     public void CancelRecovery_ReturnsToResults_OnlyWhenConfirmed()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
         machine.TryTransition("StartScan", Context(target: true));
         machine.TryTransition("ScanCompleted", Context(session: true));
         machine.TryTransition("StartRecovery", Context(session: true, selection: true, overlapPassed: true));
@@ -175,29 +169,18 @@ public class WizardStateMachineTests
     {
         var machine = new WizardStateMachine();
         var withoutTarget = machine.AvailableTransitions(Context());
-        Assert.DoesNotContain("BeginScanSetup", withoutTarget);
+        Assert.DoesNotContain("StartScan", withoutTarget);
 
         var withTarget = machine.AvailableTransitions(Context(target: true));
-        Assert.Contains("BeginScanSetup", withTarget);
+        Assert.Contains("StartScan", withTarget);
         Assert.DoesNotContain("ImportSession", withTarget);
-    }
-
-    [Fact]
-    public void PhaseMapping_MatchesStepperRail()
-    {
-        Assert.Equal(WizardPhase.Select, WizardState.Select.Phase());
-        Assert.Equal(WizardPhase.Select, WizardState.Configure.Phase());
-        Assert.Equal(WizardPhase.Scan, WizardState.Scanning.Phase());
-        Assert.Equal(WizardPhase.Recover, WizardState.Results.Phase());
-        Assert.Equal(WizardPhase.Recover, WizardState.Recovering.Phase());
-        Assert.Equal(WizardPhase.Recover, WizardState.Complete.Phase());
     }
 
     [Fact]
     public void Reset_ReturnsToSelect()
     {
         var machine = new WizardStateMachine();
-        machine.TryTransition("BeginScanSetup", Context(target: true));
+        machine.TryTransition("StartScan", Context(target: true));
         machine.Reset();
         Assert.Equal(WizardState.Select, machine.State);
     }
