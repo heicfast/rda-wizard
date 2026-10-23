@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
         xmlns:vm="clr-namespace:RdaWizard.Core.ViewModels;assembly=RdaWizard.Core"
-        xmlns:app="clr-namespace:RdaWizard.App"
+        xmlns:views="clr-namespace:RdaWizard.App.Views"
         Title="RDA Data Recovery Wizard"
         Width="{DynamicResource Window.DefaultWidth}"
         Height="{DynamicResource Window.DefaultHeight}"
@@ -19,34 +19,34 @@
     <Window.Resources>
         <!-- Page ViewModels map to Views (typed DataTemplates). -->
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
-            <app:Views.HomeView />
+            <views:HomeView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ScanConfigViewModel}">
-            <app:Views.ScanConfigView />
+            <views:ScanConfigView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ScanProgressViewModel}">
-            <app:Views.ScanProgressView />
+            <views:ScanProgressView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ResultsViewModel}">
-            <app:Views.ResultsView />
+            <views:ResultsView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:RecoveryViewModel}">
-            <app:Views.RecoveryView />
+            <views:RecoveryView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:CompletionViewModel}">
-            <app:Views.CompletionView />
+            <views:CompletionView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:HealthViewModel}">
-            <app:Views.HealthView />
+            <views:HealthView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:RepairViewModel}">
-            <app:Views.RepairView />
+            <views:RepairView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-            <app:Views.SettingsView />
+            <views:SettingsView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-            <app:Views.AboutView />
+            <views:AboutView />
         </DataTemplate>
     </Window.Resources>
 

@@ -8,9 +8,9 @@
              d:DesignHeight="700" d:DesignWidth="1100">
 
     <UserControl.Resources>
-        <app:Converters.BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
-        <app:Converters.NullToVisibilityConverter x:Key="NullToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
-        <app:Converters.CountToVisibilityConverter x:Key="CountToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+        <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+        <conv:NullToVisibilityConverter x:Key="NullToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+        <conv:CountToVisibilityConverter x:Key="CountToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
     </UserControl.Resources>
 
     <Grid>

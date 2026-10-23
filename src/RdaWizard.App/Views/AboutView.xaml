@@ -7,7 +7,7 @@
              d:DesignHeight="700" d:DesignWidth="1100">
 
     <UserControl.Resources>
-        <app:Converters.NullToVisibilityConverter x:Key="NullToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+        <conv:NullToVisibilityConverter x:Key="NullToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
     </UserControl.Resources>
 
     <Grid VerticalAlignment="Top"

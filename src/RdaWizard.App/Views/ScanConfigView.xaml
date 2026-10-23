@@ -8,7 +8,7 @@
              d:DesignHeight="700" d:DesignWidth="1100">
 
     <UserControl.Resources>
-        <app:Converters.EnumMatchConverter x:Key="ScanModeToBool" xmlns:app="clr-namespace:RdaWizard.App" />
+        <conv:EnumMatchConverter x:Key="ScanModeToBool" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
     </UserControl.Resources>
 
     <Grid>
