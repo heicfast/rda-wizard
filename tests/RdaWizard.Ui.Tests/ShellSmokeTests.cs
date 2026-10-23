@@ -1,6 +1,7 @@
 using System.IO;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Capturing;
 using FlaUI.UIA3;
 using Xunit;
 
@@ -8,9 +9,10 @@ namespace RdaWizard.Ui.Tests;
 
 /// <summary>
 /// UI smoke on Windows runners: launch the built app, verify the shell
-/// (window title, home header, about navigation), then exit. The engine
-/// (rrecov) is absent in this environment — the home page must surface its
-/// truth (error/empty state), never crash.
+/// (window title, home header, about navigation), capture screenshots for
+/// the T4 deliverable (shell + pages as PNG artifacts), then exit. The
+/// engine (rrecov) is absent in this environment — the home page must
+/// surface its truth (error/empty state), never crash.
 /// </summary>
 public sealed class ShellSmokeTests : IDisposable
 {
@@ -33,6 +35,7 @@ public sealed class ShellSmokeTests : IDisposable
         var window = _app!.GetMainWindow(_automation, TimeSpan.FromSeconds(30));
         Assert.NotNull(window);
         Assert.Contains("RDA", window.Title, StringComparison.Ordinal);
+        CaptureTo(window, "shell-home.png");
     }
 
     [Fact]
@@ -59,6 +62,22 @@ public sealed class ShellSmokeTests : IDisposable
 
         var aboutHeadline = window.FindFirstDescendant(cf => cf.ByText("Open-source licenses"));
         Assert.NotNull(aboutHeadline);
+        CaptureTo(window, "shell-about.png");
+    }
+
+    private static void CaptureTo(Window window, string fileName)
+    {
+        try
+        {
+            var directory = Path.Combine(AppContext.BaseDirectory, "screenshots");
+            Directory.CreateDirectory(directory);
+            using var image = Capture.Screen();
+            image.ToFile(Path.Combine(directory, fileName));
+        }
+        catch
+        {
+            // Screenshots are best-effort evidence, never test failures.
+        }
     }
 
     private static string? FindApp()
