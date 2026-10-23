@@ -66,3 +66,23 @@ re-check before each integration-facing milestone.
 2. **MIT license** — consistent with `core_recovery` and `rda-driver`.
 3. **Windows-Actions-first build strategy** — mandated by environment; also
    the only way to run FlaUI/UI-automation truthfully.
+
+---
+
+### Session 1 — restart #1 (unexpected stop recovery)
+
+Workspace SURVIVED the stop. Immediate action per user directive (push ASAP):
+
+- [x] Verified all 4 repos intact (core 183dfcd, driver 2b1db5f, research 18d6f14, wizard d79d88b)
+- [x] T3 work-in-progress (40 source files: full Core + Integration layers) committed
+      as 0050f46 IMMEDIATELY — this is why it was still local-only when the stop hit.
+      Lesson applied: never let a coherent unit of work sit uncommitted again.
+- [ ] Finish Core build (NavigationService param fix was mid-flight), build
+      Integration, then App/Controls/Design + tests + CI.
+- [ ] User is pushing raw session-log files to the wizard repo in ~10 min
+      (commit on main) — analyze when they appear, reconcile with local state.
+- [ ] Context recovery with parallel agents on next stop (mandatory each time).
+
+Build state at commit: Core has remaining CS0103/CS8625/CA1822-style errors
+mid-fix; Integration not yet compiled. All remaining fixes are small
+(parameter renames, using directives, nullable annotations).
