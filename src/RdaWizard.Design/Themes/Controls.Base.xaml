@@ -549,18 +549,14 @@
                             CornerRadius="{DynamicResource Radius.Card}"
                             Padding="14,10">
                         <StackPanel Orientation="Horizontal" Background="Transparent">
-                            <Ellipse x:Name="dot"
-                                     Width="18" Height="18"
-                                     Stroke="{DynamicResource Brush.Border.Strong}"
-                                     StrokeThickness="1.5"
-                                     VerticalAlignment="Center">
-                                <Ellipse.Fill>
-                                    <RadialGradientBrush>
-                                        <GradientStop x:Name="dotFill" Color="Transparent" Offset="0" />
-                                        <GradientStop Color="#00000000" Offset="1" />
-                                    </RadialGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                <Ellipse Stroke="{DynamicResource Brush.Border.Strong}"
+                                         StrokeThickness="1.5" />
+                                <Ellipse x:Name="dotFill"
+                                         Width="8" Height="8"
+                                         Fill="{DynamicResource Brush.Brand.Primary}"
+                                         Visibility="Collapsed" />
+                            </Grid>
                             <ContentPresenter Margin="10,0,0,0"
                                               VerticalAlignment="Center"
                                               RecognizesAccessKey="True" />
@@ -570,7 +566,7 @@
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="card" Property="BorderBrush" Value="{DynamicResource Brush.Border.Selected}" />
                             <Setter TargetName="card" Property="Background" Value="{DynamicResource Brush.BrandTint}" />
-                            <Setter TargetName="dotFill" Property="Color" Value="#0560FD" />
+                            <Setter TargetName="dotFill" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="card" Property="BorderBrush" Value="{DynamicResource Brush.Border.Selected}" />
