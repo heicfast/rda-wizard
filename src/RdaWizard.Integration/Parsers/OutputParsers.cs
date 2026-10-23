@@ -115,7 +115,12 @@ public static partial class ScanOutputParser
     {
         summary = new ScanSummary
         {
-            Files = 0, Deleted = 0, Carved = 0, LostPartitions = 0, BytesScanned = 0, Elapsed = TimeSpan.Zero,
+            Files = 0,
+            Deleted = 0,
+            Carved = 0,
+            LostPartitions = 0,
+            BytesScanned = 0,
+            Elapsed = TimeSpan.Zero,
         };
 
         var start = line.IndexOf('{');

@@ -11,13 +11,13 @@ public class WizardStateMachineTests
         bool selection = false,
         bool overlapPassed = false,
         bool cancelConfirmed = false) => new()
-    {
-        HasScanTarget = target,
-        HasLoadedSession = session,
-        HasRecoverySelection = selection,
-        DestinationOverlapCheckPassed = overlapPassed,
-        CancelConfirmed = cancelConfirmed,
-    };
+        {
+            HasScanTarget = target,
+            HasLoadedSession = session,
+            HasRecoverySelection = selection,
+            DestinationOverlapCheckPassed = overlapPassed,
+            CancelConfirmed = cancelConfirmed,
+        };
 
     [Fact]
     public void StartsInSelectState()

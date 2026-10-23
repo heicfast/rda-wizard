@@ -12,22 +12,22 @@ public class ScanArgumentBuilderTests
 {
     private static ScanOptions Options(ScanTargetKind kind, ScanMode mode, int threads = 0,
         string? filter = null, bool deletedOnly = false) => new()
-    {
-        Target = new ScanTarget
         {
-            Kind = kind,
-            DiskIndex = 3,
-            VolumeLetter = kind == ScanTargetKind.Volume ? 'E' : null,
-            Description = "test target",
-            SizeBytes = 123,
-        },
-        Mode = mode,
-        Threads = threads,
-        NameFilter = filter,
-        DeletedOnly = deletedOnly,
-        SessionPath = @"C:\s\out.crsf",
-        StageLogPath = @"C:\s\stage.log",
-    };
+            Target = new ScanTarget
+            {
+                Kind = kind,
+                DiskIndex = 3,
+                VolumeLetter = kind == ScanTargetKind.Volume ? 'E' : null,
+                Description = "test target",
+                SizeBytes = 123,
+            },
+            Mode = mode,
+            Threads = threads,
+            NameFilter = filter,
+            DeletedOnly = deletedOnly,
+            SessionPath = @"C:\s\out.crsf",
+            StageLogPath = @"C:\s\stage.log",
+        };
 
     private static IReadOnlyList<string> Args(ScanTargetKind kind, ScanMode mode, int threads = 0,
         string? filter = null, bool deletedOnly = false)

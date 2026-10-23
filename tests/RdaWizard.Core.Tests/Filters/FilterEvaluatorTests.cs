@@ -12,18 +12,18 @@ public class FilterEvaluatorTests
         ConfidenceGrade confidence = ConfidenceGrade.Excellent,
         DeletedState deleted = DeletedState.Active,
         ResultOrigin origin = ResultOrigin.Structured) => new()
-    {
-        FullPath = path,
-        Name = path.Contains('\\') ? path[(path.LastIndexOf('\\') + 1)..] : path,
-        LogicalSize = size,
-        IsDirectory = false,
-        Origin = origin,
-        DeletedState = deleted,
-        Confidence = confidence,
-        FirstExtentOffset = 4096,
-        Depth = path.Count(c => c == '\\'),
-        ParentPath = path.Contains('\\') ? path[..path.LastIndexOf('\\')] : null,
-    };
+        {
+            FullPath = path,
+            Name = path.Contains('\\') ? path[(path.LastIndexOf('\\') + 1)..] : path,
+            LogicalSize = size,
+            IsDirectory = false,
+            Origin = origin,
+            DeletedState = deleted,
+            Confidence = confidence,
+            FirstExtentOffset = 4096,
+            Depth = path.Count(c => c == '\\'),
+            ParentPath = path.Contains('\\') ? path[..path.LastIndexOf('\\')] : null,
+        };
 
     private static ResultNode Dir(string path) => new()
     {
