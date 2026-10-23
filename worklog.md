@@ -86,3 +86,22 @@ Workspace SURVIVED the stop. Immediate action per user directive (push ASAP):
 Build state at commit: Core has remaining CS0103/CS8625/CA1822-style errors
 mid-fix; Integration not yet compiled. All remaining fixes are small
 (parameter renames, using directives, nullable annotations).
+
+---
+
+## Session 1 — parity-audit pass (independent auditor, 2026-10-23)
+
+### PARITY-T1 — audit bootstrap (no UI code touched)
+
+- Role: independent parity auditor (third agent). Mandate saved verbatim
+  (token redacted) at `worklog/session-parity-prompt.md`.
+- Pins at audit start: rda-wizard `c2eaad6`, core_recovery `2473c03e`,
+  rda-driver `7e88e38` (v0.2.1), easeus-drw-research `18d6f14`.
+- Calibration reads: `AUDIT-UI.md` (gate doc, ADR-1..12), `docs/CORE-CONTRACT.md`
+  in full (§13 CLI freeze, G-01..G-23, D-1..D-7), worklog.
+- Audit axis registered: CORE-CONTRACT.md pins core @ `183dfcd`; core has
+  advanced to `2473c03e` (e.g. `PhysicalDiskList` API change) — every §13/§2-12
+  claim will be re-verified against current HEAD, drift = finding.
+- Next: UI parity sub-agent (page graph/state/wiring vs decompiled DRWUI.exe +
+  MOM modules vs UI-MAP.md), then consolidation into core's
+  `docs/PARITY-AUDIT.md` + mirrored summary here. Audit before fix.
