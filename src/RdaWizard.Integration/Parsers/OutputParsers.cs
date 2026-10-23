@@ -151,14 +151,32 @@ public static partial class ScanOutputParser
         }
     }
 
-    /// <summary>"session saved: %s" → the .crsf path.</summary>
+    /// <summary>"session saved: %s" / "session saved (cancelled): %s" → the
+    /// .crsf path (the cancelled variant is the engine's exit-3 contract).</summary>
     public static bool TryParseSessionSaved(string line, out string sessionPath)
     {
         sessionPath = string.Empty;
-        if (!line.StartsWith("session saved:", StringComparison.Ordinal)) return false;
-        sessionPath = line["session saved:".Length..].Trim();
+        const string CancelledPrefix = "session saved (cancelled):";
+        const string Prefix = "session saved:";
+        if (line.StartsWith(CancelledPrefix, StringComparison.Ordinal))
+        {
+            sessionPath = line[CancelledPrefix.Length..].Trim();
+        }
+        else if (line.StartsWith(Prefix, StringComparison.Ordinal))
+        {
+            sessionPath = line[Prefix.Length..].Trim();
+        }
+        else
+        {
+            return false;
+        }
         return sessionPath.Length > 0;
     }
+
+    /// <summary>"scan cancelled at %.1f%%" — the engine's cooperative-cancel
+    /// stdout marker (exit 3, session saved).</summary>
+    public static bool IsScanCancelledLine(string line)
+        => line.StartsWith("scan cancelled", StringComparison.Ordinal);
 
     /// <summary>"[transport] ..." lines → the truthful transport label for preflight/About.</summary>
     public static bool IsTransportLine(string line) => line.StartsWith("[transport]", StringComparison.Ordinal);

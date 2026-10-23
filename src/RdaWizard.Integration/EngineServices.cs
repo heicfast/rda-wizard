@@ -161,11 +161,20 @@ public sealed class ScanService : IScanService
             keepLine: static line => line.StartsWith('[') ||
                                      line.StartsWith("scan complete", StringComparison.Ordinal) ||
                                      line.StartsWith("scan failed", StringComparison.Ordinal) ||
+                                     line.StartsWith("scan cancelled", StringComparison.Ordinal) ||
                                      line.StartsWith("session saved", StringComparison.Ordinal) ||
                                      ScanOutputParser.TryParseSummaryJson(line, out _),
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (run.WasCancelled)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
+
+        // Cooperative cancel (engine contract, exit 3): the session was saved
+        // before exiting — surface as cancellation with the session intact
+        // (the caller decides whether the partial results are browsable).
+        if (run.ExitCode == 3 || run.KeptLines.Any(ScanOutputParser.IsScanCancelledLine))
         {
             throw new OperationCanceledException(cancellationToken);
         }

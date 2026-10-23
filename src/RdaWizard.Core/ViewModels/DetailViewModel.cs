@@ -39,6 +39,10 @@ public partial class DetailViewModel : ViewModelBase
         AdvancedScanning,
         Paused,
         Complete,
+
+        /// <summary>User-stopped scan with partial results browsable (og:
+        /// stopped scans keep their found files in the tree).</summary>
+        Stopped,
     }
 
     [ObservableProperty] private ScanPhase _phase = ScanPhase.Idle;
@@ -278,9 +282,24 @@ public partial class DetailViewModel : ViewModelBase
         }
         catch (OperationCanceledException) when (_scanCancellation.IsCancellationRequested)
         {
-            _logger.LogInformation("Scan cancelled by user");
-            FailureDiagnostic = "The scan was cancelled. Results found so far were not saved.";
-            ScanFailed?.Invoke(this, FailureDiagnostic);
+            // Stop route (og): a stopped scan keeps its found files browsable.
+            // Truth: the engine saves the session cooperatively (exit 3) and
+            // auto-checkpoints at stage boundaries (G-13) — the stopped
+            // session (last completed stage) is loadable when any stage
+            // finished; before that there is nothing to show.
+            _logger.LogInformation("Scan cancelled by user; checking for a stopped session");
+            var stopped = await TryInstallStoppedSessionAsync(options).ConfigureAwait(true);
+            if (stopped is not null)
+            {
+                Phase = ScanPhase.Stopped;
+                UpdateStatusPrimary();
+                ScanCompleted?.Invoke(this, stopped);
+            }
+            else
+            {
+                FailureDiagnostic = "The scan was stopped before any stage completed — no results were saved.";
+                ScanFailed?.Invoke(this, FailureDiagnostic);
+            }
         }
         catch (Exception ex)
         {
@@ -348,12 +367,49 @@ public partial class DetailViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Loads the stopped scan's session (checkpoint or exit-3
+    /// save): returns a summary when partial results are browsable.</summary>
+    private async Task<ScanSummary?> TryInstallStoppedSessionAsync(ScanOptions options)
+    {
+        try
+        {
+            if (!File.Exists(options.SessionPath))
+            {
+                return null;
+            }
+
+            var loaded = await _sessions.LoadAsync(options.SessionPath).ConfigureAwait(true);
+            if (!loaded.Success || loaded.Session is not { FileCount: > 0 } session)
+            {
+                return null;
+            }
+
+            InstallSession(session);
+            return new ScanSummary
+            {
+                Files = (int)Math.Min(session.FileCount, int.MaxValue),
+                Deleted = 0,
+                Carved = session.CarvedNodes.Count,
+                LostPartitions = session.LostNodes.Count,
+                BytesScanned = 0,
+                Elapsed = TimeSpan.Zero,
+                SessionPath = options.SessionPath,
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Stopped-session load failed");
+            return null;
+        }
+    }
+
     private string PhaseLabel() => Phase switch
     {
         ScanPhase.QuickScanning => "Quick Scanning",
         ScanPhase.AdvancedScanning => "Advanced Scanning",
         ScanPhase.Paused => "Scan Paused",
         ScanPhase.Complete => "Scan Completed",
+        ScanPhase.Stopped => "Scan Stopped",
         _ => string.Empty,
     };
 
@@ -365,17 +421,18 @@ public partial class DetailViewModel : ViewModelBase
 
     private void UpdateStatusPrimary()
     {
-        if (!IsScanRunning && Phase != ScanPhase.Complete)
+        if (!IsScanRunning && Phase is not (ScanPhase.Complete or ScanPhase.Stopped))
         {
             StatusPrimary = string.Empty;
             return;
         }
 
-        if (Phase == ScanPhase.Complete && Summary is { } summary)
+        if (Phase is ScanPhase.Complete or ScanPhase.Stopped)
         {
+            var label = Phase == ScanPhase.Stopped ? "Scan Stopped" : "Scan Completed";
             StatusPrimary = TotalFileCount > 0
-                ? $"Scan Completed, Files Found: {TotalFileCount:N0} ({FormatBytes(FoundBytes)})"
-                : $"Scan Completed, Files Found: {summary.Files:N0}";
+                ? $"{label}, Files Found: {TotalFileCount:N0} ({FormatBytes(FoundBytes)})"
+                : $"{label}, Files Found: {Summary?.Files ?? 0:N0}";
             return;
         }
 

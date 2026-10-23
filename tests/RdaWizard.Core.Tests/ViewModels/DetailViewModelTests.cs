@@ -200,6 +200,79 @@ public sealed class DetailViewModelTests
     }
 
     [Fact]
+    public async Task RunScan_CancelledWithCheckpoint_KeepsResultsBrowsable()
+    {
+        // og stop route: a stopped scan keeps its found files browsable —
+        // the checkpoint session (G-13) is loaded and the phase reads
+        // "Scan Stopped, Files Found: N (size)".
+        var nodes = new[] { FileNode("photos\\one.jpg"), FileNode("photos\\two.jpg") };
+        var sessionPath = Path.Combine(Path.GetTempPath(), "stopped-" + Guid.NewGuid().ToString("N") + ".crsf");
+        File.WriteAllText(sessionPath, "checkpoint");
+
+        var externalCts = new CancellationTokenSource();
+        var scans = new FakeScanService
+        {
+            // Simulate the real stop route: the user cancels the external
+            // token, the linked scan token observes it, the engine layer
+            // surfaces OCE with that token.
+            Run = async (_, _, ct) =>
+            {
+                externalCts.Cancel();
+                await Task.Delay(Timeout.Infinite, ct);
+                return new ScanSummary { Files = 0, Deleted = 0, Carved = 0, LostPartitions = 0, BytesScanned = 0, Elapsed = TimeSpan.Zero, SessionPath = null };
+            },
+        };
+        var sessions = new FakeSessionService
+        {
+            Load = _ => new SessionLoadResult { Success = true, Session = SessionOf(nodes) },
+        };
+        var vm = Build(scans, sessions);
+
+        ScanSummary? completed = null;
+        string? failed = null;
+        vm.ScanCompleted += (_, summary) => completed = summary;
+        vm.ScanFailed += (_, diagnostic) => failed = diagnostic;
+
+        await vm.RunScanAsync(Options(sessionPath), externalCts.Token);
+
+        Assert.Null(failed);
+        Assert.NotNull(completed);
+        Assert.Equal(DetailViewModel.ScanPhase.Stopped, vm.Phase);
+        Assert.Equal(2, vm.TotalFileCount);
+        Assert.Equal("Scan Stopped, Files Found: 2 (2.0 KB)", vm.StatusPrimary);
+        Assert.False(vm.IsScanRunning);
+        File.Delete(sessionPath);
+    }
+
+    [Fact]
+    public async Task RunScan_CancelledBeforeAnyStage_RoutesHomeWithTruthfulMessage()
+    {
+        var sessionPath = Path.Combine(Path.GetTempPath(), "nostop-" + Guid.NewGuid().ToString("N") + ".crsf");
+        var externalCts = new CancellationTokenSource();
+        var scans = new FakeScanService
+        {
+            Run = async (_, _, ct) =>
+            {
+                externalCts.Cancel();
+                await Task.Delay(Timeout.Infinite, ct);
+                return new ScanSummary { Files = 0, Deleted = 0, Carved = 0, LostPartitions = 0, BytesScanned = 0, Elapsed = TimeSpan.Zero, SessionPath = null };
+            },
+        };
+        var vm = Build(scans); // default session service: load fails
+
+        string? failed = null;
+        ScanSummary? completed = null;
+        vm.ScanFailed += (_, diagnostic) => failed = diagnostic;
+        vm.ScanCompleted += (_, summary) => completed = summary;
+
+        await vm.RunScanAsync(Options(sessionPath), externalCts.Token);
+
+        Assert.Null(completed);
+        Assert.NotNull(failed);
+        Assert.Contains("no results were saved", failed);
+    }
+
+    [Fact]
     public void PercentLabel_RendersOgePercentFormat()
     {
         var vm = Build();
