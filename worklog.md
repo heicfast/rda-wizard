@@ -484,3 +484,16 @@ T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity l
   (custom labels now render). 70 Core + 49 Integration green.
 - Next: T6 results-state refinement (filter bar, preview pane, tree counts + icons,
   context menu, PathPrefix scoping for folder targets), then T7 slop remainder.
+
+### S3-T6 — Detail results-state og rebuild (commit b2cf114)
+
+- 05-results crop-VLM extraction (tree counts, column headers, preview pane,
+  bottom-complete, filter bar, context menu, row-selected) — 7 regions.
+- Filter bar presets on FilterEvaluator truth; folder-target PathPrefix in the
+  ENGINE CSV grammar (volume-relative backslash) with segment-boundary matching
+  (fixed a real grammar bug: forward-slash prefix never matched engine paths).
+- Tree rollups + og CountText; origin icons; contextual Recover CTA; preview
+  pane (folder/file states); og 6-item context menu; tree→list scoping.
+- 82 Core + 49 Integration green (12 new DetailResultsTests).
+- Known follow-ups: T8 recovery-flow dialogs (destination/space/progress/
+  result), T9 sidebar pages detail pass, T10 zero-warning sweep.
