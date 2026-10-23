@@ -1,45 +1,44 @@
-# PARITY-DELTAS — rda-wizard (deliberate divergence registry)
+# PARITY-DELTAS — deliberate-deviations registry (UI-scoped mirror)
 
-> Seed by the UI build agent. The independent parity auditor verifies every
-> row against RE evidence; rows may be promoted to fixes (MISMATCH) or
-> accepted (DELTA) by the audit (`docs/PARITY-AUDIT.md` in core_recovery is
-> authoritative). Every row cites its justification.
+> **Authoritative registry:** `heicfast/core_recovery` → `docs/PARITY-DELTAS.md`
+> (35 evidence-cited entries in 8 groups; verdict roll-up 27 ACCEPTED / 9 NEEDS-WORK).
+> This mirror lists the deltas that live in THIS repo plus the acceptance posture the
+> UI must carry. Full evidence for every entry: core's registry + `docs/parity/`.
 
-## Format
+## Binding UI deltas (ratified ADRs — AUDIT-UI.md)
 
-Each row: surface · og behavior (evidence) · our behavior · delta class ·
-rationale. Classes: `SAFETY` · `SCOPE` · `LICENSING` · `MODERNIZATION` ·
-`ENGINE-TRUTH` · `STRUCTURAL`.
+| ID | Delta | Og behavior (evidence) | Our behavior | Verdict |
+|---|---|---|---|---|
+| ADR-1 | CLI-subprocess integration now, native shim later | og UI talks to engines in-process via MOM `.mo` modules (DRWUI main-architecture artifact) | `rrecov.exe` subprocess + `.crsf` session transport behind `IEngineHost`; no engine logic above Integration | ACCEPTED (crash isolation; every flow CLI-reproducible; swap-in shim designed) |
+| ADR-3 | No Pause in v1; Cancel-with-warning | og offers Pause during scan (Parity-B F-B-7) | Cancel discards unsaved results with explicit warning; resume only via session load | ACCEPTED **until core pause/resume lands** — then the control appears (registered against core issue #4) |
+| ADR-4 | Truthful-coarse progress | og shows live file count, sector ticker, remaining time (runtime capture) | Weighted stage permilles + elapsed; ETA only where computable | ACCEPTED; upgrade path = core issue #3 telemetry |
+| ADR-7 | Hard destination-overlap gate (defense in depth) | og blocks at UI level ("Source Drive!" + disabled button — ExportThread also has an undecoded engine-side branch, D-17) | UI refuses up-front via disk-identity resolution, on top of the engine's `ERR_DEST_OVERLAP` | ACCEPTED (wording of F12 in core's error-fix-registry corrected: og is not "warning-only") |
+| ADR-8 | Preview via bounded temp-materialization | og has a native preview subsystem (assistant-grading-preview artifact); the 15 s / 100 MB caps are og **FREE-TIER gates**, not og engine limits (D-28) | Managed previewers over recovery-path content with hard caps | ACCEPTED — **framing corrected**: caps are OUR safety policy, not "matching the og"; DESIGN-SYSTEM §12.7 wording must not claim og parity for them |
+| ADR-9 | Client-side filters over session snapshot | og: engine-side filtering + external FileFilter.xml (8 categories / 1489 extensions) | C# filtering over the loaded tree (ADR-9) | ACCEPTED interim; core issue #8 carries the externalized-data recommendation |
+| ADR-12 | WizardStepper 3-step rail | og: QStackedWidget + sidebar, no stepper | 3-step rail (Select → Scan → Recover) | ACCEPTED (user-first adaptation; never presented as parity) |
 
-## Registry
+## Omitted / replaced og surfaces (scope policy — AUDIT-UI.md §4)
 
-| # | Surface | og behavior (evidence) | Ours | Class | Rationale |
-|---|---|---|---|---|---|
-| 1 | Wizard stepper | None — QStackedWidget page flip (UI-MAP §4; ARCH05 §3) | 3-phase rail (Select→Scan→Recover) | MODERNIZATION | Non-technical users need position context in a panic moment; documented as improvement (AUDIT-UI ADR-12), never presented as parity |
-| 2 | Focus outlines | Suppressed (`outline:none`, QSS L18; DESIGN-SYSTEM §2) | Visible 2px brand focus ring on all interactive controls | MODERNIZATION | Accessibility repair — WCAG 2.4.7; og's suppression was a defect, not a feature |
-| 3 | Monetization/retention | 2 GB free quota, periodic retention nag, buy-guide window tracking the CTA (UI-MAP §12, §13) | Absent entirely | SCOPE | OSS product; every recovered byte is real. No upsell-dark-patterns by policy |
-| 4 | Cloud/NAS/iCloud/RAID chains | ~15 windows for NAS alone (UI-MAP §2) | Absent | SCOPE | Standing user exclusion; capability copy never claims them |
-| 5 | Telemetry / Aliyun / firebase | Present (og-codebase DLLs; UI-MAP §13) | Absent; logs are local-only | SCOPE+SAFETY | No telemetry standing rule |
-| 6 | Session format | `.rsf` binary (SaveScan docs) | CRSF `.crsf` (our documented format) | ENGINE-TRUTH | The engine defines the session format; semantic parity (tree+counts+error map), not byte identity; no import until core ships one (G-11) |
-| 7 | Pause during scan | Pause/Stop buttons (24px, QSS L4449) | No Pause button; Cancel with destructive confirmation | ENGINE-TRUTH | Engine has no resume API (G-07); a dead pause button violates the no-dead-buttons rule. Button appears when core lands resume (ROADMAP v0.3) |
-| 8 | Live results during scan | Tree populates during scan (DYN-scan captures) | Results populate at completion | ENGINE-TRUTH | Tree is unstable mid-stage (G-02/03: data race, header-documented); UI defers with truthful copy |
-| 9 | Progress model | Sector-read counters + PNG shimmer frames (DYN-scan §7) | Engine-weighted overall permille + elapsed + ETA-where-computable + live read-error ranges | ENGINE-TRUTH | Only what the CLI observably reports; no fabricated smoothness |
-| 10 | Timestamps column | File dates shown | "—" with tooltip | ENGINE-TRUTH | Tree CSV projection carries no timestamps (G-24, tracked); never invented |
-| 11 | Collision policy | Unevidenced in corpus (UI-MAP ambiguity #7) | Never silently overwrite; auto-rename `name (2).ext` default with policy picker | SAFETY | Data-destruction risk; og behavior unverifiable — our rule is the safe default, adjudicated in AUDIT-UI §5.7 |
-| 12 | Destination overlap | Og warns (destination-picker error state) | Hard refusal pre-engine (WMI disk mapping + write probe + space floor) | SAFETY | Defense in depth over the engine's `[F12]` warning; prompt mandates a hard gate |
-| 13 | Driver-absent behavior | Device.mo duality: driver path + direct fallback | Same duality, truthful label ("direct-access mode") + refuse only when both fail | ENGINE-TRUTH | Code-verified in core (`open_disk_view`/`open_disk`/`cr_enumerate`); TRANSPORT-CONTRACT §9 |
-| 14 | Visual assets | Proprietary PNG/QSS corpus | Reconstructed token language + Segoe MDL2 glyphs (v1 interim per user grant) | LICENSING | Clean-room; DESIGN-SYSTEM documents the evidence-based reconstruction; homegrown art in v2 |
-| 15 | Strings | Proprietary resource strings | Original en/zh-CN tables | LICENSING | Clean-room rule; structure mirrors og's shape (key-per-surface) |
-| 16 | Layout-in-stylesheet | 36% of QSS declarations are geometry (A21) | WPF resource dictionaries (tokens) + view XAML geometry | STRUCTURAL | Idiomatic WPF; token system preserves the visual language without the QSS layout pattern |
-| 17 | Icon-grid view mode | Present (partial RE evidence) | Detail view ships first; icon view is ROADMAP v0.4 | ENGINE-TRUTH+SCOPE | Corpus ambiguity #5; icon view without the og's icon resources would be a worse-than-og imitation — deferred to homegrown art |
-| 18 | Engine linkage | In-process FS DLLs + MOM modules | rrecov CLI subprocess behind Core interfaces | STRUCTURAL | No C ABI exists (G-01); CLI is the sanctioned frozen surface with crash isolation; swap-ready seam for the shim (ADR-1) |
-| 19 | Search bar styling | Dated yellow strip `#fff9e6` (QSS L4414) | `Bg.SearchStrip` token (light `#ECF4FF`) | MODERNIZATION | DESIGN-SYSTEM token table; dated pattern consciously not carried |
-| 20 | WinPE/BUILDPE surfaces | Present in installed tree | Absent | SCOPE | WinPE media is a packaging-time concern, out of the desktop wizard scope |
+Cloud/NAS/iCloud/RAID chains, retention nag + buy-guide tracking, telemetry/Aliyun
+surfaces, in-app IE webviews, license/activation UI, WinPE-only flows — **omitted by
+policy**; monetization gates replaced with none ("every recovered byte is real");
+suppressed focus outlines replaced with visible focus rings (a11y). All ACCEPTED.
 
-## Interim assets (v1 policy, user-granted)
+## UI-specific open items (NEEDS-WORK, from the parity audit)
 
-- Segoe MDL2 Assets glyph set (Microsoft, ships with Windows) — placeholder
-  iconography pending homegrown set (DESIGN-SYSTEM §6).
-- No og icons, strings, or QSS were copied; all colors derive from the
-  documented QSS census *values* (hex numbers are facts, not copyrightable
-  expression), reconstructed into our token system.
+- **F-C-9:** localization infra exists with zero string tables — must not ship v1
+  without keys (structure parity with og language packs: key conventions, fallback).
+- **F-C-10:** UI-MAP REPLACE-10 promises the quick→advanced two-phase scan
+  continuation; absent and not registered as a delta — either implement with the core
+  pause/resume work (issue #4) or amend UI-MAP.
+- **D-30:** FileCategory comment claims "og parity" at 7 categories/~90 extensions
+  (og: 8/1489 via FileFilter.xml) — fix the claim or externalize the data.
+- **F-D-2/3:** CI landed with the WPF layer but must stay green; `RdaWizard.sln`
+  must track the App/Tests projects as they land.
+
+## Asset policy (v1 interim)
+
+Icons: Fluent System Icons (MIT) mapped to the reconstructed taxonomy — interim per
+the user's instruction, homegrown art in v2. All strings original. No og assets,
+QSS, icons, or strings copied. The audit notes which assets are interim
+(DESIGN-SYSTEM §6 mapping).

@@ -289,10 +289,16 @@ vector<lost::Candidate> lost_candidates; }` — see §5.4 for what is actually f
    remnant sweep with parallel chunk fan-out; and, when `whole_disk`, `lost::discover` +
    parallel per-candidate volume scans (ThreadPool; candidate misses never abort). When
    quick was disabled, deep runs the engine pass itself with full deep semantics.
-   **LDM hook**: when `fs_hint==Unknown`, `parse_ldm_database` is tried on the (whole-disk)
-   slice; each non-Broken layout becomes a root `"Dynamic Volume <name>"` scanned through
-   an `LdmVolumeDevice` (single-disk resolver: members on other disks read as missing;
-   RAID-5 XOR-reconstructs one missing data column).
+   **LDM hook** (CORRECTED per PARITY-AUDIT F-B-1/2/3 — the code changed after the
+   183dfcd pin): `parse_ldm_database` is tried **unconditionally** on whole-disk scans
+   (before the `fs_hint` switch — probe_family's FAT heuristic can alias LDM boot bytes;
+   the parse self-rejects non-LDM disks after one 512-byte read). Each non-Broken layout
+   becomes a root `"Dynamic Volume <name>"` scanned through an `LdmVolumeDevice`.
+   `ScanConfig` gained `ldm_resolver` (a `LdmDiskResolver` callback): the platform layer
+   provides a **cross-disk GUID→device registry** (each member disk's own PRIVHEAD
+   re-anchors its LBAs inside `LdmVolumeDevice`); when absent, the local disk is the
+   fallback (members on other disks read as missing). RAID-5 still XOR-reconstructs one
+   missing data column.
 4. **Carve** = `carve::carve_slice` over the whole slice with dedup against the structured
    tree (`&tree_` passed as `dedup_tree`), namer `"Carved%06u.<ext>"`, threads =
    resolved count. `stats.carved_found = cs.validated` (grammar-confirmed only — raw-sign
@@ -308,8 +314,10 @@ each get their own root; LDM volumes their own roots.
 `bool (*progress)(u32 overall_permille, void* user)` — called on the scan thread.
 `overall_permille` is 0..1000 monotonic (weighted: `sum(w_i*pm_i)/total`, single division).
 **Frequency/coverage — exactly as wired**: fine-grained engine progress reaches the
-callback **only for the NTFS walk** (a trampoline maps engine `(done,total)` on a 0..10000
-scale into the overall permille). All other engines, the remnant sweep, lost discovery and
+callback **only for the NTFS walk** (the telemetry bridge maps engine `(done,total)`
+directly — permille = `done*1000/total`, monotonic per stage; CORRECTED per PARITY-AUDIT
+F-B-13: the earlier "0..10000 scale" claim in this document was stale).
+All other engines, the remnant sweep, lost discovery and
 carving are invoked with `progress = nullptr` — the UI sees **stage-boundary ticks only**
 (`weighted(1000,0,0)`, `weighted(1000,1000,0)`, `weighted(1000,1000,1000)`). GAP **G-04**.
 Returning `false` cancels the NTFS walk through the trampoline; at stage boundaries the
@@ -638,7 +646,7 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
   GLE); `--volume C:` → BitLocker check/auto-unlock → `volume_extent` → slice over the
   disk view; `--deep` ⇒ `whole_disk=true` (skipped with a note on volume targets);
   `--quick-only` ⇒ deep+carve off; `--no-carve` ⇒ carve off; `--threads N`. Progress
-  line `\r  %5.1f%%  (%lld s)`; on success one summary line (`scan complete: … in %llu.%01u s`)
+  line `\r  %5.1f%%  (%lld s)   ` (three trailing spaces — PARITY-AUDIT F-B-12); on success one summary line (`scan complete: … in %llu.%01u s`)
   or `--json` `{"files":N,"deleted":N,"carved":N,"lost_partitions":N,"bytes_scanned":N,
   "elapsed_ms":N}`; then the tree; `--out` saves the session (`session saved: <path>`).
   `--log file` writes a detailed stage log (`scan start`, `scan end rc=… files=… …
@@ -708,8 +716,8 @@ deliberate scope, UI degrades truthfully rather than filing.
 | G-15 | TRIM toggle not implemented (report-only) | by-design | Recommendation text only |
 | G-16 | SMART over USB bridges may be unavailable (ERR_HEALTH_UNAVAILABLE); admin handle required | win-incomplete | Health pane degrades to NVMe/geometry/TRIM facts |
 | G-17 | Windows layer CI-verified only (no Linux runtime verification) | win-incomplete | UI contract tests must run on real Windows hosts |
-| G-18 | ZFS: single-vdev pools only; multi-vdev detected+reported unsupported; BE pools refused ERR_UNSUPPORTED; gang blocks counted damaged | by-design | ZFS support statement must be scoped honestly |
-| G-19 | LDM multi-disk members unresolved in single-disk scans; RAID-5 reconstruction of one missing column only; Broken volumes surfaced but not scannable | by-design | Dynamic-volume recovery scoped to present disks |
+| G-18 | ZFS: single-vdev pools only; multi-vdev detected+reported unsupported; BE pools refused ERR_UNSUPPORTED. ~~gang blocks counted damaged~~ **STALE — gang blocks ARE assembled** (`read_gang`, engine :491-526; PARITY-AUDIT F-A2-7) | by-design | ZFS support statement must be scoped honestly (gang clause now accurate) |
+| G-19 | ~~LDM multi-disk members unresolved in single-disk scans~~ **STALE — cross-disk resolver landed** (`ScanConfig.ldm_resolver` + platform registry; PARITY-AUDIT F-B-3); RAID-5 reconstruction of one missing column only; Broken volumes surfaced but not scannable | by-design | Dynamic-volume recovery: present disks resolvable through the registry |
 | G-20 | CLI `list` exits 0 even when enumeration fails; file-top usage comment drift (missing bench `info`, `--iterations/--seed/--no-rda`, scan `--csv/--filter/--deleted-only`) | win-incomplete | Subprocess mode parses stdout, never trusts list's exit code |
 | G-21 | CLI `recover` has no `--volume` source form (extents are absolute; `--disk` mandatory) | by-design | UI always resolves volume→disk before recover |
 | G-22 | Structured (non-carved) files carry no stored hash → writer verification is hash-less for them | declared-not-wired | "Verified" badge only on carved items |
