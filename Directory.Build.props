@@ -1,0 +1,47 @@
+<Project>
+
+  <!-- RdaWizard — root build configuration.
+       All projects inherit: nullable + analyzers + deterministic builds.
+       Package versions are centrally pinned in Directory.Packages.props
+       (verified latest-stable against nuget.org on 2026-10-23). -->
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- Product identity -->
+    <Company>heicfast</Company>
+    <Authors>heicfast and rda-wizard contributors</Authors>
+    <Product>RDA Data Recovery Wizard</Product>
+    <RepositoryUrl>https://github.com/heicfast/rda-wizard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Version>0.1.0-ui</Version>
+    <RootNamespace Condition="'$(MSBuildProjectName)' != ''">$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Warnings as errors for product source; tests stay advisory (xunit
+       analyzer noise must not break CI on runner differences).
+       Documented NoWarn set (style/perf rules that do not fit this product):
+       - CA1848/CA1873: LoggerMessage delegate generation — logging volume in
+         a desktop wizard is low; source-generator ceremony everywhere is a
+         worse trade than the allocation savings.
+       - CA1711: modern generic EventHandler<T> records legitimately end in
+         EventArgs without deriving from System.EventArgs.
+       - CA1707: we keep underscore-free public API but allow it in tests.
+       -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'RdaWizard.Core.Tests' and
+                            '$(MSBuildProjectName)' != 'RdaWizard.Integration.Tests' and
+                            '$(MSBuildProjectName)' != 'RdaWizard.Ui.Tests'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CA1848;CA1873;CA1711;CA1707</NoWarn>
+  </PropertyGroup>
+
+</Project>
