@@ -90,17 +90,95 @@ public partial class DetailViewModel : ViewModelBase
     [ObservableProperty] private string _breadcrumb = string.Empty;
     [ObservableProperty] private IReadOnlyList<TreeNodeItem> _treeRoots = Array.Empty<TreeNodeItem>();
 
+    /// <summary>og CFilterBar visibility (toolbar Filter button toggles it).</summary>
+    [ObservableProperty] private bool _filterBarVisible;
+
+    /// <summary>Contextual bottom CTA (og: "Recover All ..." with no
+    /// selection, "Recover ..." once rows are checked).</summary>
+    [ObservableProperty] private string _recoverCtaLabel = "Recover All ...";
+
+    /// <summary>Path scope from a folder scan target (og PushFolderFilter
+    /// equivalence): the visible tree roots at the folder.</summary>
+    private string? _pathScope;
+
+    /// <summary>Preview-pane wrapper (og right pane: folder/file states).</summary>
+    [ObservableProperty] private PreviewItemViewModel? _previewItem;
+
     /// <summary>Selected nodes (recovery input). Maintained by selection commands.</summary>
     public IReadOnlySet<ResultNode> SelectedNodes => _selected;
 
     private readonly HashSet<ResultNode> _selected = new();
 
-    /// <summary>Tree node wrapper for hierarchical display (path tree).</summary>
+    /// <summary>Tree node wrapper for hierarchical display (path tree):
+    /// og root rows carry icon + name + file count ("Windows (C:) 1.1M").</summary>
     public sealed record TreeNodeItem(ResultNode Node)
     {
         public string Name => Node.Name;
         public string FullPath => Node.FullPath;
         public List<TreeNodeItem> Children { get; } = new();
+
+        /// <summary>Files under this node (recursive, non-directory).
+        /// Rolled up after the tree is built.</summary>
+        public long FileCount { get; set; }
+
+        /// <summary>og count format: "1.1M" / "4.3K" / "88".</summary>
+        public string CountText => FileCount switch
+        {
+            >= 1_000_000 => $"{FileCount / 1_000_000.0:0.#}M",
+            >= 1_000 => $"{FileCount / 1_000.0:0.#}K",
+            0 => "0",
+            _ => FileCount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        };
+
+        /// <summary>Icon resource key by origin (og root icons: volume /
+        /// File Path Lost / Reconstructed).</summary>
+        public string IconKey => Node.Origin switch
+        {
+            ResultOrigin.Lost => "Icon.Tree.FilePathLost",
+            ResultOrigin.Carved => "Icon.Tree.Reconstructed",
+            _ => "Icon.Tree.DirectoryIntact",
+        };
+    }
+
+    /// <summary>Right preview pane item (og CRightContent states): folder
+    /// (icon + name + size + Open) or file (icon + name + Recovery Chances
+    /// + Size / Date Modified / Path / Status).</summary>
+    public sealed record PreviewItemViewModel
+    {
+        public required ResultNode Node { get; init; }
+
+        public string Name => Node.Name;
+
+        public string Path => Node.FullPath;
+
+        public bool IsFolder => Node.IsDirectory;
+
+        public long Size => Node.LogicalSize;
+
+        public DateTimeOffset? Date => Node.Timestamp;
+
+        /// <summary>og "Status" row: Existing / Deleted / Reconstructed.</summary>
+        public string Status => (Node.Origin, Node.DeletedState) switch
+        {
+            (ResultOrigin.Carved, _) => "Reconstructed",
+            (_, DeletedState.Deleted) => "Deleted",
+            (_, DeletedState.PartiallyOverwritten) => "Partially overwritten",
+            (_, DeletedState.Damaged) => "Damaged",
+            _ => "Existing",
+        };
+
+        /// <summary>og "Recovery Chances" row value.</summary>
+        public string RecoveryChances => Node.Confidence switch
+        {
+            ConfidenceGrade.Excellent => "High",
+            ConfidenceGrade.PartialRisk => "Medium",
+            _ => "Unknown",
+        };
+
+        /// <summary>Design-system icon key by category (file) or folder.</summary>
+        public string IconKey => Node.IsDirectory
+            ? "Icon.Tree.DirectoryIntact"
+            : PreviewIcons.ForExtension(Node.Extension);
     }
 
     public DetailViewModel(ILogger<DetailViewModel> logger, IScanService scans, ISessionService sessions, IDialogService dialogs, IClock clock)
@@ -140,6 +218,7 @@ public partial class DetailViewModel : ViewModelBase
 
         TargetName = options.Target.Description;
         Breadcrumb = options.Target.Description;
+        _pathScope = options.Target.PathPrefix;
         IsScanRunning = true;
         IsPaused = false;
         Phase = options.Mode == ScanMode.Quick ? ScanPhase.QuickScanning : ScanPhase.AdvancedScanning;
@@ -316,6 +395,12 @@ public partial class DetailViewModel : ViewModelBase
     public void InstallSession(LoadedSession session, ResultFilter? prefilter = null, bool preserveState = false)
     {
         var filter = preserveState ? Filter : (prefilter ?? ResultFilter.None);
+        if (_pathScope is { } scope)
+        {
+            // Folder target (og PushFolderFilter): the visible tree roots at
+            // the scanned folder.
+            filter = filter with { PathPrefix = scope };
+        }
         Session = session;
         FoundBytes = session.Nodes.Where(n => !n.IsDirectory).Sum(n => n.LogicalSize);
         TotalFileCount = session.FileCount;
@@ -326,6 +411,7 @@ public partial class DetailViewModel : ViewModelBase
             _selected.Clear();
         }
         UpdateSelectionCounts();
+        UpdateRecoverCta();
         ApplyFilter();
         ResultsError = null;
         HasPartialResults = IsScanRunning;
@@ -333,13 +419,19 @@ public partial class DetailViewModel : ViewModelBase
             session.FileCount, session.CarvedNodes.Count, session.LostNodes.Count);
     }
 
-    private static List<TreeNodeItem> BuildTreeRoots(LoadedSession session)
+    private List<TreeNodeItem> BuildTreeRoots(LoadedSession session)
     {
         var byPath = new Dictionary<string, TreeNodeItem>(StringComparer.OrdinalIgnoreCase);
         var roots = new List<TreeNodeItem>();
 
         foreach (var node in session.Nodes)
         {
+            if (_pathScope is { } scope && !Filters.FilterEvaluator.PathScopeMatches(node.FullPath, scope)
+                && !string.Equals(node.FullPath.TrimEnd('/', '\\'), scope.TrimEnd('/', '\\'), StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             var item = new TreeNodeItem(node);
             byPath[node.FullPath] = item;
 
@@ -353,7 +445,25 @@ public partial class DetailViewModel : ViewModelBase
             }
         }
 
+        // Roll file counts up the tree (og root counts: "1.11M/1.1M").
+        foreach (var root in roots)
+        {
+            RollupCounts(root);
+        }
+
         return roots;
+    }
+
+    private static long RollupCounts(TreeNodeItem item)
+    {
+        long count = item.Node.IsDirectory ? 0 : 1;
+        foreach (var child in item.Children)
+        {
+            count += RollupCounts(child);
+        }
+
+        item.FileCount = count;
+        return count;
     }
 
     partial void OnSearchTextChanged(string value)
@@ -385,8 +495,76 @@ public partial class DetailViewModel : ViewModelBase
     [RelayCommand]
     public void ClearFilter()
     {
-        Filter = ResultFilter.None;
+        Filter = _pathScope is { } scope ? new ResultFilter { PathPrefix = scope } : ResultFilter.None;
         SearchText = string.Empty;
+        ApplyFilter();
+    }
+
+    /// <summary>Toolbar Filter button: toggles the og CFilterBar row.</summary>
+    [RelayCommand]
+    public void ToggleFilterBar() => FilterBarVisible = !FilterBarVisible;
+
+    /// <summary>Filter bar "File Type" pick (og category dropdown).</summary>
+    [RelayCommand]
+    public void FilterCategory(string? category)
+    {
+        var set = new HashSet<Models.FileCategory>();
+        if (category is { Length: > 0 } && Enum.TryParse<Models.FileCategory>(category, ignoreCase: true, out var parsed))
+        {
+            set.Add(parsed);
+        }
+        Filter = Filter with { Categories = set };
+        ApplyFilter();
+    }
+
+    /// <summary>Filter bar "Date Modified" pick (og date dropdown presets).</summary>
+    [RelayCommand]
+    public void FilterDateRange(string? preset)
+    {
+        var from = preset switch
+        {
+            "today" => _clock.UtcNow.AddDays(-1),
+            "week" => _clock.UtcNow.AddDays(-7),
+            "month" => _clock.UtcNow.AddMonths(-1),
+            _ => (DateTimeOffset?)null,
+        };
+        Filter = Filter with { ModifiedFrom = from, ModifiedTo = null };
+        ApplyFilter();
+    }
+
+    /// <summary>Filter bar "File Size" pick (og size dropdown presets).</summary>
+    [RelayCommand]
+    public void FilterSizeRange(string? preset)
+    {
+        long? min = null;
+        long? max = null;
+        switch (preset)
+        {
+            case "small":
+                max = 512L * 1024;
+                break;
+            case "medium":
+                min = 512L * 1024;
+                max = 1024L * 1024 * 512;
+                break;
+            case "large":
+                min = 1024L * 1024 * 512;
+                break;
+        }
+        Filter = Filter with { MinSize = min, MaxSize = max };
+        ApplyFilter();
+    }
+
+    /// <summary>Filter bar "Show" pick (og Existing/Deleted).</summary>
+    [RelayCommand]
+    public void FilterShow(string? preset)
+    {
+        Filter = Filter with { DeletedOnly = preset switch
+        {
+            "deleted" => true,
+            "existing" => false,
+            _ => null,
+        } };
         ApplyFilter();
     }
 
@@ -460,11 +638,94 @@ public partial class DetailViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void Preview(ResultNode node) => PreviewNode = node;
+    public void Preview(ResultNode node)
+    {
+        PreviewNode = node;
+        PreviewItem = node is null ? null : new PreviewItemViewModel { Node = node };
+    }
 
-    /// <summary>"Recover All" (og contextual CTA — fires the recovery funnel with the whole session).</summary>
+    /// <summary>Context menu / preview "Open file location": scopes the list
+    /// to the node's folder (og address-bar navigation over the flat list).</summary>
     [RelayCommand]
-    public void RecoverAll() => RecoverRequested?.Invoke(this, RecoveryRequestKind.All);
+    public void OpenLocation(FileRowViewModel? row)
+    {
+        if (row is null)
+        {
+            return;
+        }
+
+        var parent = row.Node.ParentPath;
+        Filter = Filter with { PathPrefix = parent ?? _pathScope };
+        Breadcrumb = parent ?? TargetName;
+        ApplyFilter();
+    }
+
+    /// <summary>Preview pane folder "Open": scopes the list to the folder
+    /// (og navigates the middle list into the folder).</summary>
+    [RelayCommand]
+    public void OpenPreviewFolder(PreviewItemViewModel? item)
+    {
+        if (item is null || !item.IsFolder)
+        {
+            return;
+        }
+
+        Filter = Filter with { PathPrefix = item.Node.FullPath };
+        Breadcrumb = item.Node.FullPath;
+        ApplyFilter();
+    }
+
+    /// <summary>Tree selection: scopes the list to the selected folder
+    /// (og tree→list navigation).</summary>
+    public void ScopeToNode(ResultNode? node)
+    {
+        if (node is null)
+        {
+            return;
+        }
+
+        Filter = Filter with { PathPrefix = node.IsDirectory ? node.FullPath : node.ParentPath };
+        Breadcrumb = node.IsDirectory ? node.FullPath : (node.ParentPath ?? TargetName);
+        ApplyFilter();
+    }
+
+    /// <summary>Context menu "Select unrecovered files" (og: deleted-state
+    /// rows among the visible list).</summary>
+    [RelayCommand]
+    public void SelectUnrecovered()
+    {
+        foreach (var row in VisibleFiles)
+        {
+            if (row.Node.DeletedState != DeletedState.Active)
+            {
+                row.IsSelected = true;
+                _selected.Add(row.Node);
+            }
+        }
+        UpdateSelectionCounts();
+    }
+
+    /// <summary>Context menu "Smart select best files" (og: high-confidence
+    /// rows among the visible list).</summary>
+    [RelayCommand]
+    public void SelectBest()
+    {
+        foreach (var row in VisibleFiles)
+        {
+            if (row.Node.Confidence == ConfidenceGrade.Excellent)
+            {
+                row.IsSelected = true;
+                _selected.Add(row.Node);
+            }
+        }
+        UpdateSelectionCounts();
+    }
+
+    /// <summary>Bottom CTA (og contextual): "Recover All ..." with nothing
+    /// checked, "Recover ..." with a selection — one command, contextual target.</summary>
+    [RelayCommand]
+    public void Recover() => RecoverRequested?.Invoke(this,
+        _selected.Count > 0 ? RecoveryRequestKind.Selection : RecoveryRequestKind.All);
 
     /// <summary>"Recover ..." (selection CTA — fires the funnel with the checked rows).</summary>
     [RelayCommand]
@@ -499,7 +760,10 @@ public partial class DetailViewModel : ViewModelBase
     {
         SelectedCount = _selected.Count;
         SelectedBytes = _selected.Sum(n => n.LogicalSize);
+        UpdateRecoverCta();
     }
+
+    private void UpdateRecoverCta() => RecoverCtaLabel = SelectedCount > 0 ? "Recover ..." : "Recover All ...";
 
     private static string FormatElapsed(TimeSpan elapsed) =>
         elapsed.TotalHours >= 1
@@ -536,6 +800,31 @@ public partial class FileRowViewModel : ObservableObject
     public bool IsDirectory => Node.IsDirectory;
 
     [ObservableProperty] private bool _isSelected;
+
+    /// <summary>Row icon key (og rows: file-type icon / folder icon).</summary>
+    public string IconKey => Node.IsDirectory
+        ? "Icon.Tree.DirectoryIntact"
+        : PreviewIcons.ForExtension(Node.Extension);
+
+    /// <summary>og Type column: "File folder" / extension label.</summary>
+    public string TypeText => Node.IsDirectory
+        ? "File folder"
+        : (Node.Extension.Length == 0 ? "File" : Node.Extension.ToUpperInvariant() + " File");
+}
+
+/// <summary>File-category → design-system icon key (og rows carry file-type icons).</summary>
+internal static class PreviewIcons
+{
+    public static string ForExtension(string extension) => extension.ToLowerInvariant() switch
+    {
+        "jpg" or "jpeg" or "png" or "gif" or "bmp" or "tif" or "tiff" or "webp" or "heic" => "Icon.Category.Picture",
+        "mp4" or "mov" or "avi" or "mkv" or "wmv" or "flv" or "webm" or "m4v" => "Icon.Category.Video",
+        "mp3" or "wav" or "flac" or "aac" or "ogg" or "wma" or "m4a" => "Icon.Category.Audio",
+        "zip" or "rar" or "7z" or "tar" or "gz" or "bz2" or "xz" => "Icon.Category.Archive",
+        "eml" or "msg" or "pst" => "Icon.Category.Email",
+        "doc" or "docx" or "pdf" or "txt" or "xls" or "xlsx" or "ppt" or "pptx" or "rtf" or "odt" => "Icon.Category.Document",
+        _ => "Icon.Category.Other",
+    };
 }
 
 /// <summary>Which set the user asked to recover (og Recover All vs contextual Recover).</summary>

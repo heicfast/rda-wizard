@@ -410,10 +410,12 @@ public partial class LandingViewModel : ViewModelBase
             return false;
         }
 
-        // Tree scope: the session tree roots at the volume; sub-path uses
-        // forward slashes (engine tree grammar).
-        var relative = Path.GetRelativePath(root, path).Replace('\\', '/');
-        var prefix = string.IsNullOrEmpty(relative) ? null : relative.TrimEnd('/') + "/";
+        // Tree scope: the engine CSV grammar is volume-relative with
+        // backslashes ("photos\one.jpg") — keep that grammar.
+        var relative = Path.GetRelativePath(root, path);
+        var prefix = string.IsNullOrEmpty(relative) || relative == "."
+            ? null
+            : relative.TrimEnd('\\', '/');
 
         target = new ScanTarget
         {

@@ -1,4 +1,5 @@
 <UserControl x:Class="RdaWizard.App.Views.DetailView"
+             x:Name="Root"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
@@ -29,6 +30,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -106,11 +108,12 @@
                     <controls:Icon IconName="Icon.Action.ViewList" IconSize="18" />
                 </Button>
 
-                <!-- Filter (og funnel + label) -->
+                <!-- Filter (og funnel + label — toggles the CFilterBar row) -->
                 <Button Grid.Column="4"
                         Style="{DynamicResource Button.Secondary}"
                         Height="30"
                         Margin="0,0,8,0"
+                        Command="{Binding ToggleFilterBarCommand}"
                         AutomationProperties.Name="Filter">
                     <StackPanel Orientation="Horizontal">
                         <controls:Icon IconName="Icon.Action.Filter" IconSize="16" />
@@ -127,13 +130,61 @@
             </Grid>
         </Border>
 
-        <!-- 3-pane browser: left tree / middle list. Right preview pane is
-             the results-phase surface (T6). Panes fill from stage-boundary
-             checkpoints while scanning (ADR-2) — empty until then. -->
-        <Grid Grid.Row="2">
+        <!-- og CFilterBar (toggle-visible row below the toolbar): Show /
+             File Type / Date Modified / File Size dropdowns + Reset Filter.
+             Presets map truthfully onto the client-side FilterEvaluator. -->
+        <Border Grid.Row="2"
+                Visibility="{Binding FilterBarVisible, Converter={StaticResource BoolToVisibility}}"
+                Background="{DynamicResource Brush.Bg.Card}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                BorderThickness="0,0,0,1"
+                Padding="12,6">
+            <StackPanel Orientation="Horizontal">
+                <ComboBox MinWidth="110" Height="30" AutomationProperties.Name="Show"
+                          SelectionChanged="OnShowPick">
+                    <ComboBoxItem Content="All" IsSelected="True" />
+                    <ComboBoxItem Content="Existing" />
+                    <ComboBoxItem Content="Deleted" />
+                </ComboBox>
+                <ComboBox MinWidth="120" Height="30" Margin="10,0,0,0" AutomationProperties.Name="File Type"
+                          SelectionChanged="OnCategoryPick">
+                    <ComboBoxItem Content="All Types" IsSelected="True" />
+                    <ComboBoxItem Content="Photos" />
+                    <ComboBoxItem Content="Videos" />
+                    <ComboBoxItem Content="Documents" />
+                    <ComboBoxItem Content="Audio" />
+                    <ComboBoxItem Content="Archives" />
+                    <ComboBoxItem Content="Email" />
+                </ComboBox>
+                <ComboBox MinWidth="140" Height="30" Margin="10,0,0,0" AutomationProperties.Name="Date Modified"
+                          SelectionChanged="OnDatePick">
+                    <ComboBoxItem Content="Any Date" IsSelected="True" />
+                    <ComboBoxItem Content="Yesterday" />
+                    <ComboBoxItem Content="Last 7 days" />
+                    <ComboBoxItem Content="Last 1 month" />
+                </ComboBox>
+                <ComboBox MinWidth="140" Height="30" Margin="10,0,0,0" AutomationProperties.Name="File Size"
+                          SelectionChanged="OnSizePick">
+                    <ComboBoxItem Content="Any Size" IsSelected="True" />
+                    <ComboBoxItem Content="&lt; 512KB" />
+                    <ComboBoxItem Content="512KB~512MB" />
+                    <ComboBoxItem Content="&gt; 512MB" />
+                </ComboBox>
+                <Button Style="{DynamicResource Button.Link}"
+                        Content="Reset Filter"
+                        Margin="16,0,0,0"
+                        Command="{Binding ClearFilterCommand}" />
+            </StackPanel>
+        </Border>
+
+        <!-- 3-pane browser: left tree / middle list / right preview.
+             Panes fill from stage-boundary checkpoints while scanning
+             (ADR-2) — empty until then. -->
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="300" />
             </Grid.ColumnDefinitions>
 
             <!-- Left: path tree (og CLeftTreeView — Path/Type tabs) -->
@@ -169,22 +220,30 @@
                         </TabControl>
                     </Border>
 
-                    <!-- Tree roots with icon + name + count (og root rows) -->
+                    <!-- Tree roots with icon + name + count (og root rows:
+                         'Windows (C:) 1.1M' / 'File Path Lost 4.3K') -->
                     <TreeView Grid.Row="1"
                               ItemsSource="{Binding TreeRoots}"
                               VirtualizingPanel.IsVirtualizing="True"
                               BorderThickness="0"
-                              Background="Transparent">
+                              Background="Transparent"
+                              SelectedItemChanged="OnTreeItemSelected">
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal">
-                                    <controls:Icon IconName="Icon.Tree.DirectoryIntact" IconSize="16"
+                                    <controls:Icon IconName="{Binding IconKey}" IconKind="Solid" IconSize="16"
                                                    IconBrush="{DynamicResource Brush.Brand.Primary}" />
                                     <TextBlock Text="{Binding Name}"
                                                Style="{DynamicResource Text.Body}"
                                                Margin="6,0,0,0"
                                                VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding CountText}"
+                                               Style="{DynamicResource Text.Caption}"
+                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                               Margin="8,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Typography.NumeralAlignment="Tabular" />
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
@@ -200,12 +259,13 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- Column header: select-all + Name / Date Modified / Size -->
+                <!-- Column header: select-all + Name / Date Modified / Type / Size -->
                 <Grid Grid.Row="0" Margin="0,4,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="110" />
                         <ColumnDefinition Width="90" />
                     </Grid.ColumnDefinitions>
                     <CheckBox Grid.Column="0"
@@ -214,7 +274,8 @@
                               Margin="0,0,10,0" />
                     <TextBlock Grid.Column="1" Style="{DynamicResource Text.CaptionStrong}" Text="Name" />
                     <TextBlock Grid.Column="2" Style="{DynamicResource Text.CaptionStrong}" Text="Date Modified" />
-                    <TextBlock Grid.Column="3" Style="{DynamicResource Text.CaptionStrong}" Text="Size" TextAlignment="Right" />
+                    <TextBlock Grid.Column="3" Style="{DynamicResource Text.CaptionStrong}" Text="Type" />
+                    <TextBlock Grid.Column="4" Style="{DynamicResource Text.CaptionStrong}" Text="Size" TextAlignment="Right" />
                 </Grid>
 
                 <TextBlock Grid.Row="1"
@@ -240,7 +301,8 @@
                             <Grid Margin="0,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="110" />
                                     <ColumnDefinition Width="90" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
@@ -250,7 +312,11 @@
                                               AutomationProperties.Name="{Binding Name}"
                                               Margin="0,0,10,0"
                                               VerticalAlignment="Center" />
+                                    <controls:Icon IconName="{Binding IconKey}" IconKind="Solid" IconSize="16"
+                                                   IconBrush="{DynamicResource Brush.Text.Secondary}"
+                                                   VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                                               Margin="6,0,0,0"
                                                VerticalAlignment="Center" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="1"
@@ -259,21 +325,128 @@
                                            Text="{Binding Timestamp, Converter={StaticResource NullableDate}}"
                                            VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="2"
+                                           Style="{DynamicResource Text.Caption}"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                           Text="{Binding TypeText}"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="3"
                                            Style="{DynamicResource Text.Numeral}"
                                            Margin="16,0,0,0"
                                            Text="{Binding LogicalSize, Converter={StaticResource ByteSize}}"
                                            TextAlignment="Right"
                                            VerticalAlignment="Center" />
+                                <!-- og context menu (CShowContextMenu, 6 documented
+                                     items — R-A PG-10): Recover / Preview / Open
+                                     file location / Select unrecovered files /
+                                     Smart select best files / Clear selection -->
+                                <Grid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Recover"
+                                                  Command="{Binding DataContext.RecoverCommand, Source={x:Reference Root}}" />
+                                        <MenuItem Header="Preview"
+                                                  Command="{Binding DataContext.PreviewCommand, Source={x:Reference Root}}"
+                                                  CommandParameter="{Binding Node}" />
+                                        <MenuItem Header="Open file location"
+                                                  Command="{Binding DataContext.OpenLocationCommand, Source={x:Reference Root}}"
+                                                  CommandParameter="{Binding}" />
+                                        <Separator />
+                                        <MenuItem Header="Select unrecovered files"
+                                                  Command="{Binding DataContext.SelectUnrecoveredCommand, Source={x:Reference Root}}" />
+                                        <MenuItem Header="Smart select best files"
+                                                  Command="{Binding DataContext.SelectBestCommand, Source={x:Reference Root}}" />
+                                        <MenuItem Header="Clear selection"
+                                                  Command="{Binding DataContext.ClearSelectionCommand, Source={x:Reference Root}}" />
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Grid>
+
+            <!-- Right: preview pane (og CRightContent). Folder state: big
+                 icon + name + Size + Open. File state: icon + name +
+                 Recovery Chances + Size / Date Modified / Path / Status.
+                 No thumbnail rendering: the preview reader is library-only
+                 (no CLI projection, R-B §2.6) — the file-type icon is the
+                 truthful surface. -->
+            <Border Grid.Column="2"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                    BorderThickness="1,0,0,0"
+                    Background="{DynamicResource Brush.Bg.Card}"
+                    Visibility="{Binding PreviewItem, Converter={StaticResource NullToVisibility}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,12">
+
+                        <!-- Icon + name -->
+                        <controls:Icon IconName="{Binding PreviewItem.IconKey}" IconKind="Solid" IconSize="72"
+                                       HorizontalAlignment="Center"
+                                       IconBrush="{DynamicResource Brush.Brand.Primary}" />
+                        <TextBlock Text="{Binding PreviewItem.Name}"
+                                   Style="{DynamicResource Text.BodyStrong}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0" />
+
+                        <!-- Folder state: Open (scopes the list to it) -->
+                        <Button Style="{DynamicResource Button.Secondary}"
+                                Content="Open"
+                                HorizontalAlignment="Center"
+                                Margin="0,10,0,0"
+                                Command="{Binding OpenPreviewFolderCommand}"
+                                CommandParameter="{Binding PreviewItem}"
+                                Visibility="{Binding PreviewItem.IsFolder, Converter={StaticResource BoolToVisibility}}" />
+
+                        <!-- File state: metadata stack (og row order) -->
+                        <StackPanel Visibility="{Binding PreviewItem.IsFolder, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}"
+                                    Margin="0,12,0,0">
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Recovery Chances" />
+                            <Border Style="{DynamicResource Badge.Tag}" Margin="0,2,0,10"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Style="{DynamicResource Text.CaptionStrong}"
+                                           Text="{Binding PreviewItem.RecoveryChances, StringFormat=Recovery Chances: {0}}" />
+                            </Border>
+
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Size" />
+                            <TextBlock Style="{DynamicResource Text.Body}"
+                                       Margin="0,2,0,8"
+                                       Text="{Binding PreviewItem.Size, Converter={StaticResource ByteSize}}" />
+
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Date Modified" />
+                            <TextBlock Style="{DynamicResource Text.Body}"
+                                       Margin="0,2,0,8"
+                                       Text="{Binding PreviewItem.Date, Converter={StaticResource NullableDate}}" />
+
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Path" />
+                            <TextBlock Style="{DynamicResource Text.Body}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       Margin="0,2,0,8"
+                                       Text="{Binding PreviewItem.Path}"
+                                       TextWrapping="Wrap" />
+
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Status" />
+                            <TextBlock Style="{DynamicResource Text.Body}"
+                                       Margin="0,2,0,0"
+                                       Text="{Binding PreviewItem.Status}" />
+                        </StackPanel>
+
+                        <!-- Folder state: Size row -->
+                        <StackPanel Visibility="{Binding PreviewItem.IsFolder, Converter={StaticResource BoolToVisibility}}"
+                                    Margin="0,12,0,0">
+                            <TextBlock Style="{DynamicResource Text.Caption}" Text="Size" />
+                            <TextBlock Style="{DynamicResource Text.Body}"
+                                       Margin="0,2,0,0"
+                                       Text="{Binding PreviewItem.Size, Converter={StaticResource ByteSize}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
 
-        <!-- og CBottomArea: gauge + Stop + status text + Recover All ...
-             (540-family bottom bar, top separator, white surface). -->
-        <Border Grid.Row="3"
+        <!-- og CBottomArea: gauge + Stop + status text + contextual
+             Recover CTA (540-family bottom bar, top separator, white). -->
+        <Border Grid.Row="4"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 BorderThickness="0,1,0,0"
                 Background="{DynamicResource Brush.Bg.Card}"
@@ -317,13 +490,14 @@
                                Text="{Binding StatusSecondary, TargetNullValue=''}" />
                 </StackPanel>
 
-                <!-- Recover All ... (og: enabled with results; disabled while
-                     scanning — G-02/G-03 truthful gate). -->
+                <!-- Contextual Recover CTA (og: "Recover All ..." with no
+                     selection, "Recover ..." with checked rows; enabled only
+                     with results — G-02/G-03 truthful gate). -->
                 <Button Grid.Column="3"
                         Style="{DynamicResource Button.Hero}"
                         MinWidth="170" Height="34"
-                        Content="Recover All ..."
-                        Command="{Binding RecoverAllCommand}"
+                        Content="{Binding RecoverCtaLabel}"
+                        Command="{Binding RecoverCommand}"
                         IsEnabled="{Binding Session, Converter={StaticResource NullToBool}}" />
             </Grid>
         </Border>

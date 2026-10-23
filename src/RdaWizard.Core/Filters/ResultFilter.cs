@@ -56,6 +56,14 @@ public sealed record ResultFilter
 
 public static class FilterEvaluator
 {
+    /// <summary>Path-scope match on segment boundaries (engine grammar:
+    /// backslash volume-relative paths; tolerates forward slashes): the node
+    /// equals the scope or lives under it.</summary>
+    internal static bool PathScopeMatches(string fullPath, string prefix) =>
+        string.Equals(fullPath, prefix, StringComparison.OrdinalIgnoreCase)
+        || fullPath.StartsWith(prefix + "\\", StringComparison.OrdinalIgnoreCase)
+        || fullPath.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Applies the filter to one node. Directories pass category/size/confidence checks vacuously (they group rows).</summary>
     public static bool Passes(in Models.ResultNode node, in ResultFilter filter)
     {
@@ -65,8 +73,7 @@ public static class FilterEvaluator
             return false;
         }
 
-        if (filter.PathPrefix is { } prefix &&
-            !node.FullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        if (filter.PathPrefix is { } prefix && !PathScopeMatches(node.FullPath, prefix))
         {
             return false;
         }
