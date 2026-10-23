@@ -628,7 +628,7 @@ rrecov list
 rrecov scan --disk N | --volume C: [--deep] [--quick-only] [--no-carve]
             [--threads N] [--out file.crsf] [--resume file.crsf] [--log file] [--json] [--csv]
             [--filter s] [--deleted-only]
-rrecov tree --in file.crsf [--filter s] [--deleted-only] [--csv]
+rrecov tree --in file.crsf [--filter s] [--deleted-only] [--csv] [--json]
 rrecov recover --in file.crsf --disk N --to DIR [--deleted-only] [--filter s]
 rrecov health --disk N
 rrecov fix --disk N [--part P] [--apply] [--undo file] [--undo-apply file] [--no-rda]
@@ -667,7 +667,17 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
 - **tree**: loads `.crsf` (via `ScanController::load_session`), prints `session: N
   file(s)` + tree. Tree text format: `== <root>` then depth-indented `name (size)
   [deleted|risk] [carved|lost]`; `--csv`: `"full\path",logical_size,origin,deleted_state,
-  confidence,first_extent_offset` (no header row). Exit 0/1.
+  confidence,first_extent_offset` (no header row). **`--json`** (COORDINATED
+  UPDATE, core 1005d14 / GAP-TREE-JSON — the G-12 projection, frozen schema):
+  `{"total":<matched>,"rows":[{"path":…,"name":…,"size":N,"modified":N,
+  "origin":N,"deleted":N,"confidence":N,"category":N},…]}` printed after the
+  `session:` line; all strings `escape_json`-escaped; `modified` = Unix epoch
+  seconds (0 = unknown); enums NUMERIC and identical to `--csv` (Origin:
+  Structured=0 Carved=1 Lost=2 Virtual=3; DeletedState: Active=0 Deleted=1
+  PartiallyOverwritten=2 Damaged=3; Confidence: Unknown=0 Excellent=1
+  PartialRisk=2 Overwritten=3 MetadataOnly=4; Category: None=0 Image=1 Video=2
+  Audio=3 Document=4 Archive=5 Other=6 — core docs/ground-truth-contracts.md
+  §11 is the normative table). Exit 0/1.
 - **recover**: requires `--in --disk --to`. Loads session, opens source disk, maps
   destination extent (`[F12] WARNING: destination is on the SOURCE disk %u` when same
   disk), enqueues every file node matching `--deleted-only` / `--filter` (substring in
