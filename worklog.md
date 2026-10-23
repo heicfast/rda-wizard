@@ -105,3 +105,40 @@ mid-fix; Integration not yet compiled. All remaining fixes are small
 - Next: UI parity sub-agent (page graph/state/wiring vs decompiled DRWUI.exe +
   MOM modules vs UI-MAP.md), then consolidation into core's
   `docs/PARITY-AUDIT.md` + mirrored summary here. Audit before fix.
+
+---
+
+### Session 1 — resume #2: WPF layer landed (a9902de via merge e787bcd)
+
+Coordination note (three-agent mode now active):
+- The independent PARITY AUDITOR has bootstrapped (worklog/session-parity-prompt.md,
+  pins rda-wizard @ c2eaad6, core @ 2473c03e, driver @ 7e88e38 v0.2.1).
+- My contract docs pin core @ 183dfcd and driver @ 2b1db5f — I verified the
+  rrecov.cpp CLI grammar is UNCHANGED between 183dfcd..2473c03e (LDM
+  cross-disk registry is internal; one new stage-log line only), so the
+  Integration parsers remain contract-valid. rda-driver 7e88e38 (v0.2.1)
+  needs a TRANSPORT-CONTRACT delta check on next pull.
+- A core UI-readiness sub-agent is closing core issues #1-#10 (C ABI shim,
+  snapshot, pause/resume, report JSON, preview reader, query API,
+  checkpointing). My ADR-1 (CLI-subprocess now, shim later) was designed
+  exactly for this: when the shim lands, IResultNodeSource/engine services
+  swap implementations behind the SAME Core interfaces.
+
+Landed in a9902de (see commit message for the full inventory):
+- Design: Tokens + Theme.Light/Dark (~110 tokens from QSS census) + Controls.Base
+- Controls: WizardStepper, ConfidenceBadge, HealthGauge, StateSurface + Generic.xaml
+- App: Generic Host + Serilog, MainWindow shell (stepper + region + status
+  bar + keyboard nav), ShellOrchestrator (flow glue: VM events -> guarded
+  transitions -> navigation; hard preflight gate; session path allocation),
+  all 10 page Views with loading/empty/error states, converters,
+  en+zh-CN string tables, app.manifest (asInvoker, PerMonitorV2, Win7-10 OSD)
+- CI: ci.yml (Linux fast job + windows-latest/2022 matrix + format verify +
+  portable publish), ui-smoke.yml (FlaUI), release.yml (tags, zips, SHA256SUMS)
+- Local validation: Core 52/52 + Integration 47/47 green (net10.0.402)
+- WPF projects compile on Windows CI only (Linux cannot build WPF) — CI
+  baseline is the next checkpoint to watch.
+
+Remaining for v0.1.0-ui (tracked): docs/ARCHITECTURE.md + TESTING.md +
+ROADMAP.md, T4 static-shell screenshots (Windows runner capture), T9 1M-node
+virtualization perf test wiring, preview worker implementation (bounded),
+T18 FlaUI full flow on seeded VM, tag v0.1.0-ui.
