@@ -7,6 +7,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="700" d:DesignWidth="1100">
 
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+    </UserControl.Resources>
+
     <Grid VerticalAlignment="Top"
           MaxWidth="{DynamicResource Content.MaxWidth}"
           HorizontalAlignment="Left">

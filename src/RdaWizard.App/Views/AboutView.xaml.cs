@@ -2,7 +2,7 @@ using System.Windows.Controls;
 
 namespace RdaWizard.App.Views;
 
-/// <summary>About view — driver/engine truth + licenses + capability claims.</summary>
+/// <summary>About view (P33) — product, version, licenses.</summary>
 public partial class AboutView : UserControl
 {
     public AboutView() => InitializeComponent();

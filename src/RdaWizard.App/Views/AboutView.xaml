@@ -16,7 +16,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
@@ -26,7 +25,6 @@
                        Margin="0,8,0,0" />
         </StackPanel>
 
-        <!-- Engine + driver status (the truthful stack) -->
         <Border Grid.Row="1"
                 Padding="16"
                 CornerRadius="{DynamicResource Radius.Card}"
@@ -34,43 +32,16 @@
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 BorderThickness="1">
             <StackPanel>
-                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Engine status" Margin="0,0,0,12" />
-                <UniformGrid Columns="2">
-                    <StackPanel>
-                        <TextBlock Style="{DynamicResource Text.Caption}" Text="RECOVERY ENGINE" />
-                        <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
-                                   Text="{Binding Engine.Version, TargetNullValue=checking…}" />
-                    </StackPanel>
-                    <StackPanel>
-                        <TextBlock Style="{DynamicResource Text.Caption}" Text="RDA DRIVER" />
-                        <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
-                                   Text="{Binding Driver.TransportLabel, TargetNullValue=checking…}" />
-                    </StackPanel>
-                </UniformGrid>
-                <TextBlock Style="{DynamicResource Text.Caption}"
-                           Text="When the RDA driver is unavailable the engine falls back to direct disk access — weaker for locked volumes and damaged media, identical results otherwise. Both paths need the same user rights."
-                           TextWrapping="Wrap"
-                           Margin="0,12,0,0" />
-                <Button Content="Open-source licenses"
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Open-source licenses" Margin="0,0,0,8" />
+                <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                           Text="This build uses MIT-licensed components. The full license text for every bundled library is available below."
+                           TextWrapping="Wrap" />
+                <Button Content="View licenses"
                         Height="{DynamicResource Height.XS}"
                         Padding="12,4"
                         HorizontalAlignment="Left"
                         Margin="0,12,0,0"
                         Command="{Binding ShowLicensesCommand}" />
-            </StackPanel>
-        </Border>
-
-        <!-- Filesystem support (truthful capability claims — ReFS first-class per scope correction) -->
-        <Border Grid.Row="2"
-                Margin="0,16,0,0"
-                Padding="16"
-                CornerRadius="{DynamicResource Radius.Card}"
-                Background="{DynamicResource Brush.Bg.Surface}">
-            <StackPanel>
-                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Filesystems this build can recover from" Margin="0,0,0,8" />
-                <TextBlock Style="{DynamicResource Text.BodySecondary}"
-                           Text="NTFS · FAT12/16/32 · exFAT · ext4 · HFS+ · Btrfs · ZFS (single-vdev pools) · ReFS · lost partitions · LDM/dynamic disks (spanned/striped/mirrored/RAID-5) · raw signature carving (139 formats)"
-                           TextWrapping="Wrap" />
             </StackPanel>
         </Border>
     </Grid>

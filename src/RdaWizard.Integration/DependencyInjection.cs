@@ -24,7 +24,6 @@ public static class DependencyInjection
         services.TryAddSingleton<IRecoveryService, RecoveryService>();
         services.TryAddSingleton<IHealthService, HealthService>();
         services.TryAddSingleton<IRepairService, RepairService>();
-        services.TryAddSingleton<IEngineInfoService, EngineInfoService>();
         services.TryAddSingleton<DriverStatusDetector>();
         services.TryAddSingleton<IDriverStatusService, DriverStatusService>();
         return services;

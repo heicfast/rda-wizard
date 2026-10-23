@@ -65,7 +65,6 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainViewModel main)
         {
-            _ = main.About.LoadAsync(CancellationToken.None);
             main.TryOpenAuxiliary(PageKey.About);
         }
     }
