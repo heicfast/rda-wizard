@@ -295,3 +295,21 @@ the engine has always printed it unbracketed. See F-C-1 below.
 Next (T7+): design/tokens.json + generator → XAML (light/dark/HC) + Metrics.cs; then the
 component waves, icons, motion, comps, gallery, a11y/DPI/l10n evidence, acceptance grid,
 tag v0.1.0-design.
+
+
+### PARITY-T20 — handoff (independent auditor)
+
+- PIN: rda-wizard db5a9da (CI green: ci + release + ui-smoke on the
+  parity series bd83be3..db5a9da).
+- Auditor deliverables in this repo: F-C-1 P0 fix (bd83be3) + guard
+  tests; CORE-CONTRACT drift corrections (042e081); PARITY-DELTAS.md UI
+  mirror; PARITY-AUDIT.md mirror; issue #1 (P0 notice).
+- NEXT UI-SIDE PARITY WORK (evidence in docs/parity/PARITY-UI.md):
+  F-C-2 (log tailer for live read-error ranges), F-C-3 (recovery honors
+  user selection), F-C-4 (P25 needed-space gate), F-C-5..8 P2 batch,
+  F-C-9 (string tables before v1 ships), F-C-10 (UI-MAP REPLACE-10
+  amendment or implementation with core pause), D-30 (FileCategory
+  claim), F-D-7 (externalize filter data per og FileFilter.xml shape).
+- Re-run the UI parity appendix against the App layer once it stabilizes
+  (page inventory, error dialogs, feature gates were IN-FLIGHT at audit
+  time).
