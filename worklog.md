@@ -313,3 +313,45 @@ tag v0.1.0-design.
 - Re-run the UI parity appendix against the App layer once it stabilizes
   (page inventory, error dialogs, feature gates were IN-FLIGHT at audit
   time).
+---
+
+## Session 2 (cont.) — token SoT + component library + icon system
+
+### VD-T7/T8 — tokens as code
+
+- `design/tokens.json` — machine source of truth (103 theme keys × light/dark/HC +
+  gradients + effects + geometry/typography/motion). HC values: @-prefixed Windows
+  SystemColors dynamic keys (OS remaps in real HC themes) + high-visibility literals
+  for semantics; gradients fall back to solid in HC; elevation OFF in HC.
+- `design/generate-tokens.mjs` — byte-stable generator → Tokens.xaml, Theme.Light/
+  Dark/HighContrast.xaml, Metrics.cs. `--check` mode for CI drift detection.
+  Parity enforced: all 3 themes have identical key sets (99→103 keys).
+- ThemeService: high-contrast support (follows SystemParameters.HighContrast + registry
+  probe; HC wins over requested palette unless pinned). App.xaml: 3 new style
+  dictionaries + Icons.xaml merged.
+- GAP FIX: Text.CaptionStrong was referenced (ScanProgress/Results views) but never
+  defined — silent unstyled fallback at runtime since v0.1.0-ui. Fixed + full Text.*
+  family completed (BodyStrong/Header/Micro/Link/Numeral tabular).
+
+### VD-T10..T12 — components + icons (compile-verified locally)
+
+- New style dictionaries: Controls.Buttons.xaml (Secondary/Outline/Ghost/Link/Icon/
+  SplitAffix — verbatim QSS L602–940 metrics), Controls.Navigation.xaml (ToolTip per
+  QSS L20–30, TabControl+TabItem underline strip, ContextMenu+MenuItem 36px, Slider),
+  Controls.Surfaces.xaml (Card ×3 variants, Panel, Dialog.Surface, Overlay.Scrim,
+  ResizeGrip, Divider, Section.Header).
+- New custom controls (RdaWizard.Controls): ToggleSwitch, Banner (4 severities,
+  dismissible, action), Toast (auto-dismiss, hover-pause, reduced-motion aware),
+  Segmented (+item style), ProgressSurface (determinate-smoothed/indeterminate-shimmer/
+  staged), CircularGauge + Arc shape (scan ring, paused state), FileTypeFilterChip
+  (icon+count, checked states), DriveCard (capacity bar, OS/USB/SSD badges, TRIM chip,
+  BitLocker overlay, selection check), SearchField (placeholder+clear), Breadcrumb,
+  RecoveryQueueRow (fit-verdict chips), SessionBanner, Icon (Chrome/Solid/Art kinds,
+  optical stroke compensation).
+- Icon system: 70+ original geometries in Icons.xaml (nav/window/scan/action chrome on
+  24-grid stroke discipline; devices/status/tree/file tiles 20-grid filled; 6 empty-
+  state art pieces). All original — no proprietary assets copied.
+
+Local build: full solution green via EnableWindowsTargeting (Linux). Windows CI remains
+the runtime/FlaUI truth. Next: gallery app, comps, motion demo, a11y/DPI/l10n evidence,
+CI wiring, acceptance grid, tag.

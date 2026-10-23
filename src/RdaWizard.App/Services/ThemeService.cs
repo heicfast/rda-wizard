@@ -8,13 +8,15 @@ namespace RdaWizard.App.Services;
 
 /// <summary>
 /// Live theme switching: swaps the active theme dictionary in
-/// Application.Resources (light/dark/system). System follows Windows
-/// AppsUseLightTheme via registry read (no WMI dependency).
+/// Application.Resources (light/dark/high-contrast/system). System follows Windows
+/// AppsUseLightTheme via registry read (no WMI dependency) and auto-engages the
+/// high-contrast dictionary when the OS high-contrast accessibility flag is on.
 /// </summary>
 public sealed class ThemeService
 {
     private const string LightPack = "pack://application:,,,/RdaWizard.Design;component/Themes/Theme.Light.xaml";
     private const string DarkPack = "pack://application:,,,/RdaWizard.Design;component/Themes/Theme.Dark.xaml";
+    private const string HighContrastPack = "pack://application:,,,/RdaWizard.Design;component/Themes/Theme.HighContrast.xaml";
 
     private readonly ILogger<ThemeService> _logger;
 
@@ -24,14 +26,27 @@ public sealed class ThemeService
 
     public void Apply(string theme)
     {
-        var effective = theme switch
+        // High contrast always wins over the requested palette (a11y requirement,
+        // VISUAL-SPEC.md §2.2) unless the caller explicitly pins a concrete theme.
+        string effective;
+        string pack;
+        if (theme == "highcontrast" || (theme is not ("light" or "dark") && IsSystemHighContrast()))
         {
-            "dark" => "dark",
-            "light" => "light",
-            _ => IsSystemDark() ? "dark" : "light",
-        };
+            effective = "highcontrast";
+            pack = HighContrastPack;
+        }
+        else
+        {
+            effective = theme switch
+            {
+                "dark" => "dark",
+                "light" => "light",
+                _ => IsSystemDark() ? "dark" : "light",
+            };
+            pack = effective == "dark" ? DarkPack : LightPack;
+        }
 
-        var dictionary = new ResourceDictionary { Source = new Uri(effective == "dark" ? DarkPack : LightPack) };
+        var dictionary = new ResourceDictionary { Source = new Uri(pack) };
 
         var merged = Application.Current.Resources.MergedDictionaries;
         // The theme dictionary is the LAST entry (see App.xaml); replace it.
@@ -46,6 +61,27 @@ public sealed class ThemeService
 
         Current = effective;
         _logger.LogInformation("Theme applied: {Theme} (requested {Requested})", effective, theme);
+    }
+
+    private static bool IsSystemHighContrast()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Control Panel\Accessibility\Themes");
+            // The presence of an active high-contrast theme is surfaced via the
+            // SystemParameters flag; registry is the fallback probe.
+            if (key?.GetValue("CurrentTheme") is string themeName)
+            {
+                return !string.IsNullOrEmpty(themeName)
+                    && themeName.Contains("hc", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("High-contrast probe failed: " + ex.Message);
+        }
+        return SystemParameters.HighContrast;
     }
 
     private static bool IsSystemDark()

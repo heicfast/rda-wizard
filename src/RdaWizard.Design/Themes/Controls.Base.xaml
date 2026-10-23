@@ -54,6 +54,52 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
     </Style>
 
+    <!-- Text.CaptionStrong: 13/18 semibold (list headers QSS L17438, search label QSS L4421).
+         GAP FIX: referenced by ScanProgressView/ResultsView since v0.1.0-ui but never
+         defined — DynamicResource fell back to unstyled text at runtime. -->
+    <Style x:Key="Text.CaptionStrong" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.CaptionStrong}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Text.BodyStrong: 14/20 semibold (SEMIBOLD predominance, census A21 §4). -->
+    <Style x:Key="Text.BodyStrong" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Text.Header: 18/24 semibold dialog titles (QSS L2068/L2438/L3230). -->
+    <Style x:Key="Text.Header" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Text.Micro: 11/14 semibold ALL-CAPS badges only (DRW floor was 12px; [ADV]). -->
+    <Style x:Key="Text.Micro" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Micro}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <!-- Text.Link: interaction blue inline link (census 59×). -->
+    <Style x:Key="Text.Link" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Link}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!-- Text.Numeral: tabular figures for live counters/sizes (progress must not jitter). -->
+    <Style x:Key="Text.Numeral" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+        <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Body}" />
+    </Style>
+
     <!-- ==================== Buttons ==================== -->
     <Style TargetType="Button">
         <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Body}" />

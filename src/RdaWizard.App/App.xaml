@@ -7,8 +7,16 @@
             <ResourceDictionary.MergedDictionaries>
                 <!-- Theme-independent geometry + type ramp -->
                 <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Tokens.xaml" />
+                <!-- Icon geometry library (original vector set) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Icons/Icons.xaml" />
                 <!-- Base control styles (refer theme brushes via DynamicResource) -->
                 <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Controls.Base.xaml" />
+                <!-- Button variants (secondary/outline/ghost/link/icon/split) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Controls.Buttons.xaml" />
+                <!-- Navigation & chrome (tabs, tooltip, context menu, slider) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Controls.Navigation.xaml" />
+                <!-- Surface primitives (card, panel, dialog, overlay, grip) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Controls.Surfaces.xaml" />
                 <!-- Active theme (swapped at runtime by ThemeService) -->
                 <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Theme.Light.xaml" />
             </ResourceDictionary.MergedDictionaries>

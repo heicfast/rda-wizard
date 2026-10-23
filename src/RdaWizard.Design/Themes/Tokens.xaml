@@ -2,14 +2,14 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <!--
-      Design tokens: sizes, spacing, radii, motion durations.
-      Theme-INDEPENDENT (identical in light and dark). Colors live in
-      Theme.Light.xaml / Theme.Dark.xaml; everything here is geometry and time.
-      Source of truth: docs/DESIGN-SYSTEM.md §4/§5/§8 (token tables
-      extracted from the DRW QSS census, [ADAPTATION] markers included).
+      Design tokens: sizes, spacing, radii, typography, motion — theme-INDEPENDENT.
+      GENERATED FILE — do not edit by hand. Source of truth: design/tokens.json
+      (regenerate: node design/generate-tokens.mjs). Tokens v1.0.0.
+      Evidence keys (QSS/TDI/VE/QE/ADV) are recorded per-key in design/tokens.json;
+      see docs/VISUAL-SPEC.md for the authority order and rationale.
     -->
 
-    <!-- ===== Spacing (4px base grid) — Thickness so Padding/Margin consume them directly ===== -->
+    <!-- ===== Spacing (4px base grid) — Thickness so Padding/Margin consume directly ===== -->
     <Thickness x:Key="Space.XS">4</Thickness>
     <Thickness x:Key="Space.S">8</Thickness>
     <Thickness x:Key="Space.M">12</Thickness>
@@ -17,6 +17,7 @@
     <Thickness x:Key="Space.XL">24</Thickness>
     <Thickness x:Key="Space.XXL">32</Thickness>
     <Thickness x:Key="Space.Page">48</Thickness>
+    <Thickness x:Key="Space.2">2</Thickness>
 
     <!-- ===== Control heights ===== -->
     <sys:Double x:Key="Height.XS">32</sys:Double>
@@ -28,8 +29,22 @@
     <sys:Double x:Key="Height.TitleBar">40</sys:Double>
     <sys:Double x:Key="Height.Toolbar">48</sys:Double>
     <sys:Double x:Key="Height.StatusBar">88</sys:Double>
+    <sys:Double x:Key="Height.SidebarRow">48</sys:Double>
+    <sys:Double x:Key="Height.MenuItem">36</sys:Double>
+    <sys:Double x:Key="Height.DialogButton">28</sys:Double>
+    <sys:Double x:Key="Height.Banner">48</sys:Double>
+    <sys:Double x:Key="Height.BannerCollapsed">28</sys:Double>
+    <sys:Double x:Key="Height.FilterBar">56</sys:Double>
+    <sys:Double x:Key="Height.TreeRow">28</sys:Double>
+
+    <!-- ===== Pane/control widths ===== -->
     <sys:Double x:Key="Width.Sidebar">220</sys:Double>
     <sys:Double x:Key="Width.SidebarCollapsed">48</sys:Double>
+    <sys:Double x:Key="Width.TreePane">240</sys:Double>
+    <sys:Double x:Key="Width.PreviewPane">300</sys:Double>
+    <sys:Double x:Key="Width.SearchBox">220</sys:Double>
+    <sys:Double x:Key="Width.DriveCard">192</sys:Double>
+    <sys:Double x:Key="Width.CheckboxCol">28</sys:Double>
 
     <!-- ===== Corner radii ===== -->
     <CornerRadius x:Key="Radius.Control">4</CornerRadius>
@@ -40,8 +55,44 @@
     <CornerRadius x:Key="Radius.Splash">20</CornerRadius>
     <CornerRadius x:Key="Radius.Badge">999</CornerRadius>
 
-    <!-- ===== Typography ramp (Segoe UI Variable → Segoe UI fallback; Win7-safe) ===== -->
-    <!-- Font sizes in WPF are device-independent px @96dpi. -->
+    <!-- ===== Icon sizes ===== -->
+    <sys:Double x:Key="Icon.Size.S">16</sys:Double>
+    <sys:Double x:Key="Icon.Size.M">20</sys:Double>
+    <sys:Double x:Key="Icon.Size.L">24</sys:Double>
+    <sys:Double x:Key="Icon.Size.XL">32</sys:Double>
+    <sys:Double x:Key="Icon.Size.XXL">48</sys:Double>
+    <sys:Double x:Key="Icon.Size.Tile">72</sys:Double>
+    <sys:Double x:Key="Icon.Size.Hero">160</sys:Double>
+
+    <!-- ===== Window & page metrics ===== -->
+    <sys:Double x:Key="Window.MinWidth">800</sys:Double>
+    <sys:Double x:Key="Window.MinHeight">600</sys:Double>
+    <sys:Double x:Key="Window.DefaultWidth">1240</sys:Double>
+    <sys:Double x:Key="Window.DefaultHeight">840</sys:Double>
+    <sys:Double x:Key="Content.MaxWidth">899</sys:Double>
+    <sys:Double x:Key="Coaching.MaxWidth">720</sys:Double>
+    <sys:Double x:Key="Dialog.DefaultWidth">540</sys:Double>
+    <sys:Double x:Key="Dialog.MaxWidth">720</sys:Double>
+    <sys:Double x:Key="Splash.Width">420</sys:Double>
+    <sys:Double x:Key="Splash.Height">280</sys:Double>
+
+    <!-- ===== Stroke widths ===== -->
+    <sys:Double x:Key="Stroke.Hairline">1</sys:Double>
+    <sys:Double x:Key="Stroke.Control">1</sys:Double>
+    <sys:Double x:Key="Stroke.FocusRing">2</sys:Double>
+    <sys:Double x:Key="Stroke.FocusOffset">2</sys:Double>
+    <sys:Double x:Key="Stroke.Selected">2</sys:Double>
+    <sys:Double x:Key="Stroke.AccentBar">4</sys:Double>
+    <sys:Double x:Key="Stroke.CapacityBar">4</sys:Double>
+    <sys:Double x:Key="Stroke.GaugeTrack">8</sys:Double>
+    <sys:Double x:Key="Stroke.ProgressLine">2</sys:Double>
+
+    <!-- ===== Table columns ===== -->
+    <sys:Double x:Key="Col.DateModified">140</sys:Double>
+    <sys:Double x:Key="Col.Type">110</sys:Double>
+    <sys:Double x:Key="Col.Size">90</sys:Double>
+
+    <!-- ===== Typography ramp (sizes in WPF DIPs; families with CJK fallbacks) ===== -->
     <sys:Double x:Key="Font.Size.Display">28</sys:Double>
     <sys:Double x:Key="Font.Size.Title">22</sys:Double>
     <sys:Double x:Key="Font.Size.Subtitle">16</sys:Double>
@@ -49,12 +100,11 @@
     <sys:Double x:Key="Font.Size.Caption">12</sys:Double>
     <sys:Double x:Key="Font.Size.CaptionStrong">13</sys:Double>
     <sys:Double x:Key="Font.Size.Micro">11</sys:Double>
-
-    <FontFamily x:Key="Font.Family">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI</FontFamily>
-    <FontFamily x:Key="Font.Family.Body">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="Font.Family">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI, Meiryo UI, Malgun Gothic</FontFamily>
+    <FontFamily x:Key="Font.Family.Body">Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI, Meiryo UI, Malgun Gothic</FontFamily>
     <FontFamily x:Key="Font.Family.Mono">Consolas, Cascadia Mono, Courier New</FontFamily>
 
-    <!-- ===== Motion durations (ms) — reduce-motion collapses these to 0 ===== -->
+    <!-- ===== Motion durations (ms) — reduce-motion collapses to 0 ===== -->
     <sys:Double x:Key="Motion.PageTransition">300</sys:Double>
     <sys:Double x:Key="Motion.PanelOpen">250</sys:Double>
     <sys:Double x:Key="Motion.PanelClose">200</sys:Double>
@@ -62,19 +112,8 @@
     <sys:Double x:Key="Motion.Press">80</sys:Double>
     <sys:Double x:Key="Motion.ProgressSmoothing">300</sys:Double>
     <sys:Double x:Key="Motion.ShimmerLoop">1600</sys:Double>
-
-    <!-- ===== Icon sizes ===== -->
-    <sys:Double x:Key="Icon.Size.S">16</sys:Double>
-    <sys:Double x:Key="Icon.Size.M">20</sys:Double>
-    <sys:Double x:Key="Icon.Size.L">24</sys:Double>
-    <sys:Double x:Key="Icon.Size.XL">32</sys:Double>
-
-    <!-- ===== Window metrics ===== -->
-    <sys:Double x:Key="Window.MinWidth">800</sys:Double>
-    <sys:Double x:Key="Window.MinHeight">600</sys:Double>
-    <sys:Double x:Key="Window.DefaultWidth">1240</sys:Double>
-    <sys:Double x:Key="Window.DefaultHeight">840</sys:Double>
-    <sys:Double x:Key="Content.MaxWidth">899</sys:Double>
-    <sys:Double x:Key="Coaching.MaxWidth">720</sys:Double>
-
+    <sys:Double x:Key="Motion.CountUp">250</sys:Double>
+    <sys:Double x:Key="Motion.TreeExpand">200</sys:Double>
+    <sys:Double x:Key="Motion.ToastIn">250</sys:Double>
+    <sys:Double x:Key="Motion.ToastOut">200</sys:Double>
 </ResourceDictionary>
