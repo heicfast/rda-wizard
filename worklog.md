@@ -497,3 +497,19 @@ T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity l
 - 82 Core + 49 Integration green (12 new DetailResultsTests).
 - Known follow-ups: T8 recovery-flow dialogs (destination/space/progress/
   result), T9 sidebar pages detail pass, T10 zero-warning sweep.
+
+### S3-T7/T8 — wiring truth fixes + og recovery funnel (commits 06797c9, 3920901)
+
+- T7 core cross-check found the cancel wiring in the pre-ADR-3 era: exit-3/
+  kill semantics now truthful (stopped scans keep found files browsable via
+  the G-13 checkpoint session — 'Scan Stopped, Files Found: N (size)';
+  before-first-stage stops route home honestly). ScanService keeps the
+  cooperative-cancel lines; parser handles 'session saved (cancelled):'.
+- S-7 verified already removed (shell rebuild). S-8 fixed in T5 (AppModalDialog
+  custom labels).
+- T8: ChooseDestinationDialog (og most-styled surface; volume rows + source
+  warning + Choose folder + gated Save; Cloud tab omitted — standing
+  exclusion) + F-C-4 space gate (needed-bytes soft gate w/ Continue-anyway;
+  64MiB hard floor removed from preflight).
+- 87 Core + 49 Integration green. Remaining: T9 sidebar pages detail pass,
+  T10 zero-warning sweep + final parity loop.
