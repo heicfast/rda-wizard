@@ -5,6 +5,11 @@ namespace RdaWizard.Core.Models;
 /// to a slice over their owning disk (engine behavior, gap G-21); disk scans
 /// use the whole-disk view. Lost partitions are surfaced as roots inside the
 /// result tree of a disk scan ([lost] origin), not as separate targets.
+/// Folder targets (the og landing trio: Recycle Bin / Desktop / Select
+/// Folder) scan the containing volume — the og pushes a folder filter into
+/// the scan controller at scan start (CDoScanPartition::PushFolderFilter);
+/// our engine has no path filter, so the volume scan runs and the results
+/// surface scopes the tree to <see cref="PathPrefix"/> client-side.
 /// </summary>
 public sealed record ScanTarget
 {
@@ -15,6 +20,15 @@ public sealed record ScanTarget
 
     /// <summary>Drive letter for volume targets; null for whole-disk targets.</summary>
     public char? VolumeLetter { get; init; }
+
+    /// <summary>Folder path shown in headers for folder targets (Recycle
+    /// Bin / Desktop / a user-picked folder). Null for disk/volume targets.</summary>
+    public string? FolderPath { get; init; }
+
+    /// <summary>Tree-scope prefix for folder targets: result nodes under
+    /// this path (forward-slash rooted at the volume) are shown, others
+    /// filtered out — the og-equivalent of PushFolderFilter.</summary>
+    public string? PathPrefix { get; init; }
 
     /// <summary>Human-readable description for the progress/results headers.</summary>
     public required string Description { get; init; }
@@ -27,6 +41,11 @@ public enum ScanTargetKind
 {
     WholeDisk,
     Volume,
+
+    /// <summary>Folder inside a volume (Recycle Bin / Desktop / picked
+    /// folder) — engine scans the owning volume, results scoped by
+    /// <see cref="ScanTarget.PathPrefix"/>.</summary>
+    Folder,
 }
 
 /// <summary>

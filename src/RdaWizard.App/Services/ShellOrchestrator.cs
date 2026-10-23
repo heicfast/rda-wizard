@@ -42,6 +42,7 @@ public sealed class ShellOrchestrator : IDisposable
         _main = main;
 
         _main.Landing.ScanRequested += OnScanRequested;
+        _main.Landing.ReturnToScanRequested += OnReturnToScanRequested;
         _main.Landing.SessionLoaded += OnSessionLoaded;
         _main.Detail.ScanCompleted += OnScanCompleted;
         _main.Detail.ScanFailed += OnScanFailed;
@@ -204,6 +205,16 @@ public sealed class ShellOrchestrator : IDisposable
     private async void OnScanRequested(object? sender, ScanTarget target)
     {
         await StartScanAsync(target).ConfigureAwait(true);
+    }
+
+    /// <summary>CTA pressed while a scan already runs (sidebar return):
+    /// navigate back to the Detail scan surface — never restart the scan.</summary>
+    private void OnReturnToScanRequested(object? sender, EventArgs e)
+    {
+        if (_main.WizardState == WizardState.Scanning)
+        {
+            _main.NavigateForState();
+        }
     }
 
     private async void OnSessionLoaded(object? sender, LoadedSession session)

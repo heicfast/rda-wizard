@@ -5,124 +5,299 @@
              mc:Ignorable="d"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             d:DesignHeight="700" d:DesignWidth="900">
+             d:DesignHeight="735" d:DesignWidth="754">
 
-    <!-- TRANSITIONAL: device list + CTA. The full og landing (tiles with
-         capacity bars, "Specify a location" trio, session banner, can't-find
-         link) lands in the landing-page phase. -->
+    <!-- og: PeripheralHomeView (wizard stack index 2 — default landing).
+         Evidence: 02-landing/landing-baseline.png crop-VLM (tile geometry,
+         selection state, trio arrangement, bottom bar) + R-A PG-02 dynamic
+         coordinate table + atlas §5. -->
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
         <conv:NullToVisibilityConverter x:Key="NullToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
         <conv:CountToVisibilityConverter x:Key="CountToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
-        <conv:ByteSizeConverter x:Key="ByteSize" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+
+        <!-- og volume tile: compact when unselected (~190x90: icon + name +
+             capacity caption, hairline border r8); SELECTED expands to
+             ~190x160 — 2px brand border r12, checkmark badge top-right,
+             capacity bar (6px pill, CTA gradient family). -->
+        <DataTemplate x:Key="DriveTileTemplate" DataType="vm:DriveTileViewModel" xmlns:vm="clr-namespace:RdaWizard.Core.ViewModels">
+            <Border x:Name="tile"
+                    Width="190"
+                    MinHeight="88"
+                    Margin="0,0,24,16"
+                    Padding="16,14"
+                    CornerRadius="8"
+                    Background="{DynamicResource Brush.Bg.Card}"
+                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                    BorderThickness="1"
+                    Cursor="Hand"
+                    AutomationProperties.Name="{Binding Name}">
+                <Border.InputBindings>
+                    <MouseBinding Gesture="LeftClick" Command="{Binding DataContext.SelectTileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                </Border.InputBindings>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <controls:Icon Grid.Row="0" Grid.Column="0"
+                                   IconName="Icon.Device.Disk" IconKind="Solid" IconSize="40"
+                                   IconBrush="{DynamicResource Brush.Brand.Primary}"
+                                   VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}"
+                                   Style="{DynamicResource Text.BodyStrong}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding CapacityText}"
+                                   Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Typography.NumeralAlignment="Tabular"
+                                   Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <!-- Capacity bar + full caption: selected state only (og
+                         expanded tile) -->
+                    <StackPanel x:Name="expanded" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                Margin="0,10,0,0" Visibility="Collapsed">
+                        <Grid Height="6">
+                            <Border Background="{DynamicResource Brush.Tint.T2}" CornerRadius="3" />
+                            <Border HorizontalAlignment="Left"
+                                    CornerRadius="3"
+                                    Width="158"
+                                    RenderTransformOrigin="0,0.5"
+                                    Background="{DynamicResource Brush.ProgressFill}">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleX="{Binding UsedFraction, FallbackValue=0, TargetNullValue=0}" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{Binding Filesystem}"
+                                   Style="{DynamicResource Text.Micro}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- Selection checkmark badge (top-right, og pattern) -->
+                    <Grid x:Name="check" Grid.Row="0" Grid.Column="1"
+                          Width="20" Height="20"
+                          HorizontalAlignment="Right" VerticalAlignment="Top"
+                          Visibility="Collapsed"
+                          Margin="0,-6,-6,0">
+                        <Ellipse Fill="{DynamicResource Brush.Brand.Primary}" />
+                        <Path Data="M 5 10 L 8.5 13.5 L 15 6"
+                              Stroke="White" StrokeThickness="2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    </Grid>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter TargetName="tile" Property="BorderBrush" Value="{DynamicResource Brush.Brand.Primary}" />
+                    <Setter TargetName="tile" Property="BorderThickness" Value="2" />
+                    <Setter TargetName="tile" Property="CornerRadius" Value="12" />
+                    <Setter TargetName="tile" Property="MinHeight" Value="150" />
+                    <Setter TargetName="tile" Property="Padding" Value="16,18" />
+                    <Setter TargetName="expanded" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="check" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- og "Specify a location" trio: BARE icon + label items (no card
+             chrome), wrapped; selection tints the icon brand + check dot. -->
+        <DataTemplate x:Key="TrioTemplate" DataType="vm:TrioItemViewModel" xmlns:vm="clr-namespace:RdaWizard.Core.ViewModels">
+            <Button Style="{DynamicResource Button.Ghost}"
+                    Command="{Binding DataContext.SelectTrioItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    CommandParameter="{Binding}"
+                    Margin="0,0,32,16"
+                    AutomationProperties.Name="{Binding Label}">
+                <StackPanel Orientation="Horizontal">
+                    <Grid>
+                        <controls:Icon x:Name="icon" IconName="{Binding IconName}" IconKind="Solid" IconSize="48"
+                                       IconBrush="{DynamicResource Brush.Text.Tertiary}" />
+                        <!-- selection check dot (bottom-right of the icon) -->
+                        <Border x:Name="check" Width="18" Height="18"
+                                Background="{DynamicResource Brush.Bg.Card}"
+                                CornerRadius="9"
+                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                Visibility="Collapsed">
+                            <Ellipse Fill="{DynamicResource Brush.Brand.Primary}" Margin="2" />
+                        </Border>
+                    </Grid>
+                    <TextBlock Text="{Binding Label}"
+                               Style="{DynamicResource Text.Body}"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0" />
+                </StackPanel>
+            </Button>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter TargetName="icon" Property="IconBrush" Value="{DynamicResource Brush.Brand.Primary}" />
+                    <Setter TargetName="check" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Margin="40,28,40,24">
+    <Grid Margin="35,28,40,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Page title (og: "Select a location to search for lost data") -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Style="{DynamicResource Text.Display}" Text="Select a location to search for lost data" />
-        </StackPanel>
+        <!-- og page title (22px/600) -->
+        <TextBlock Grid.Row="0"
+                   Style="{DynamicResource Text.Display}"
+                   Text="Select a location to search for lost data"
+                   Margin="0,0,0,24" />
 
-        <!-- Loading / error / device list -->
-        <Grid Grid.Row="1">
-            <controls:StateSurface Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
-                                   Headline="Reading the disk information…"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
+        <!-- Scrollable device/locations surface -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Loading (og: "Reading the disk information, please wait") -->
+                <controls:StateSurface Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+                                       Headline="Reading the disk information, please wait…"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Margin="0,40" />
 
-            <Border Visibility="{Binding ErrorDiagnostic, Converter={StaticResource NullToVisibility}}"
-                    Padding="16"
-                    CornerRadius="{DynamicResource Radius.Card}"
-                    Background="{DynamicResource Brush.Status.WarningBg}"
-                    VerticalAlignment="Top">
-                <StackPanel>
-                    <TextBlock Style="{DynamicResource Text.BodyStrong}"
-                               Foreground="{DynamicResource Brush.Status.WarningText}"
-                               Text="{Binding ErrorDiagnostic}"
-                               TextWrapping="Wrap" />
+                <!-- Enumeration failure -->
+                <Border Visibility="{Binding ErrorDiagnostic, Converter={StaticResource NullToVisibility}}"
+                        Padding="16"
+                        CornerRadius="{DynamicResource Radius.Card}"
+                        Background="{DynamicResource Brush.Status.WarningBg}"
+                        Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.BodyStrong}"
+                                   Foreground="{DynamicResource Brush.Status.WarningText}"
+                                   Text="{Binding ErrorDiagnostic}"
+                                   TextWrapping="Wrap" />
+                        <Button Style="{DynamicResource Button.Secondary}"
+                                Content="Try again"
+                                Margin="0,12,0,0"
+                                Command="{Binding RefreshCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Session resume banner (P41: "Continue last scanning ·
+                     Scan time: · Scan files: · Scan disk: · Load") -->
+                <Border Visibility="{Binding RecentSessions.Count, Converter={StaticResource CountToVisibility}}"
+                        Padding="12,8"
+                        CornerRadius="{DynamicResource Radius.Control}"
+                        Background="{DynamicResource Brush.Bg.SearchStrip}"
+                        Margin="0,0,0,20">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="Continue last scanning" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="16,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding RecentSessions[0].TargetDescription, TargetNullValue=Scan disk: —, FallbackValue=Scan disk: —}" />
+                        <Button Style="{DynamicResource Button.Link}"
+                                Content="Load"
+                                Margin="16,0,0,0"
+                                Command="{Binding LoadSessionCommand}"
+                                CommandParameter="{Binding RecentSessions[0]}" />
+                        <Button Style="{DynamicResource Button.Link}"
+                                Content="Open another session…"
+                                Margin="12,0,0,0"
+                                Command="{Binding ImportSessionFileCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Internal drives group (og: "Internal drives (N)") -->
+                <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                           Text="{Binding InternalHeader}" />
+                <ItemsControl ItemsSource="{Binding InternalDrives}"
+                              ItemTemplate="{StaticResource DriveTileTemplate}"
+                              Margin="0,8,0,8">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <!-- External drives group (og: "External drives (N)") -->
+                <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                           Text="{Binding ExternalHeader}"
+                           Visibility="{Binding ExternalDrives.Count, Converter={StaticResource CountToVisibility}}" />
+                <ItemsControl ItemsSource="{Binding ExternalDrives}"
+                              ItemTemplate="{StaticResource DriveTileTemplate}"
+                              Margin="0,8,0,8"
+                              Visibility="{Binding ExternalDrives.Count, Converter={StaticResource CountToVisibility}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <!-- No-devices state (og: dead-end "Drive Not Show Up") -->
+                <StackPanel Visibility="{Binding HasDevices, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}"
+                            Margin="0,12">
+                    <controls:StateSurface Headline="Drive Not Show Up"
+                                           Detail="No disks or partitions were found. Reconnect your drive and try again." />
                     <Button Style="{DynamicResource Button.Secondary}"
-                            Content="Try again"
+                            Content="Refresh"
+                            HorizontalAlignment="Center"
                             Margin="0,12,0,0"
                             Command="{Binding RefreshCommand}" />
                 </StackPanel>
-            </Border>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Disks}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,0,0,12"
-                                    Padding="16"
-                                    CornerRadius="{DynamicResource Radius.Card}"
-                                    Background="{DynamicResource Brush.Bg.Card}"
-                                    BorderBrush="{DynamicResource Brush.Border.Default}"
-                                    BorderThickness="1"
-                                    MouseLeftButtonUp="OnDiskCardClick"
-                                    Tag="{Binding}">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="{Binding DisplayName}" />
-                                        <TextBlock Style="{DynamicResource Text.BodySecondary}"
-                                                   Margin="12,0,0,0"
-                                                   Text="{Binding SizeBytes, Converter={StaticResource ByteSize}}" />
-                                    </StackPanel>
-                                    <ItemsControl ItemsSource="{Binding Volumes}" Margin="0,8,0,0">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{DynamicResource Button.Ghost}"
-                                                        HorizontalContentAlignment="Left"
-                                                        Margin="0,2"
-                                                        Content="{Binding DisplayName}"
-                                                        Click="OnVolumeRowClick"
-                                                        Tag="{Binding}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+                <!-- "Specify a location" (og trio) -->
+                <TextBlock Style="{DynamicResource Text.BodyStrong}"
+                           Text="Specify a location"
+                           Margin="0,8,0,4" />
+                <ItemsControl ItemsSource="{Binding LocationTrio}"
+                              ItemTemplate="{StaticResource TrioTemplate}"
+                              Margin="0,4,0,24">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
                 </ItemsControl>
-            </ScrollViewer>
-        </Grid>
+            </StackPanel>
+        </ScrollViewer>
 
-        <!-- Session resume banner (P41) + CTA row -->
-        <StackPanel Grid.Row="2" Margin="0,16,0,0">
-            <Border Visibility="{Binding RecentSessions.Count, Converter={StaticResource CountToVisibility}}"
-                    Padding="12,8"
-                    CornerRadius="{DynamicResource Radius.Control}"
-                    Background="{DynamicResource Brush.Bg.SearchStrip}"
-                    Margin="0,0,0,12">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="Continue last scanning" />
-                    <Button Style="{DynamicResource Button.Link}"
-                            Content="Load"
-                            Margin="12,0,0,0"
-                            Command="{Binding LoadSessionCommand}"
-                            CommandParameter="{Binding RecentSessions[0]}" />
-                    <Button Style="{DynamicResource Button.Link}"
-                            Content="Open another session…"
-                            Margin="12,0,0,0"
-                            Command="{Binding ImportSessionFileCommand}" />
-                </StackPanel>
-            </Border>
+        <!-- Bottom bar: divider + help link (left) + CTA (right).
+             og: CTA "Search for Lost Data" 199x36 at (798,660)-(997,696). -->
+        <Border Grid.Row="2"
+                BorderBrush="{DynamicResource Brush.Border.Default}"
+                BorderThickness="0,1,0,0"
+                Padding="0,12,0,14">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <controls:Icon IconName="Icon.Status.Question" IconSize="16"
+                                   IconBrush="{DynamicResource Brush.Text.Secondary}"
+                                   VerticalAlignment="Center" />
+                    <Button Style="{DynamicResource Button.Link}"
+                            Content="Unable to find your hard drive?"
+                            Margin="6,0,0,0"
+                            VerticalAlignment="Center" />
+                </StackPanel>
+
                 <Button Grid.Column="1"
                         Style="{DynamicResource Button.Hero}"
                         MinWidth="200"
-                        Content="Search for Lost Data"
+                        Height="36"
+                        Content="{Binding CtaLabel}"
                         Command="{Binding StartScanCommand}" />
             </Grid>
-        </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

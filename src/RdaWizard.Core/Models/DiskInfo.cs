@@ -53,11 +53,33 @@ public sealed record VolumeInfo
     /// <summary>Volume size in bytes.</summary>
     public required long SizeBytes { get; init; }
 
+    /// <summary>Used space in bytes from the OS capacity pass (the og's
+    /// WMI/mountmgr equivalent — DriveInfo), null when the OS reports none
+    /// (unmounted/BitLocker volumes). Not engine data: the engine's list
+    /// line carries totals only.</summary>
+    public long? UsedBytes { get; init; }
+
     /// <summary>Engine flagged the volume BitLocker-locked (auto-unlock is engine-side).</summary>
     public required bool IsBitLocker { get; init; }
 
     /// <summary>Owning physical disk (resolved from list nesting / volume extents).</summary>
     public required int OwningDiskIndex { get; init; }
+
+    /// <summary>Tile-facing name in the og format: label + letter, e.g.
+    /// "Windows(C:)" / "Data(D:)"; unmounted volumes degrade to the
+    /// filesystem name per the og's lost-volume tiles.</summary>
+    public string TileName
+    {
+        get
+        {
+            if (Letter is { } letter)
+            {
+                var label = string.IsNullOrWhiteSpace(Label) ? Filesystem : Label;
+                return $"{label}({letter}:)";
+            }
+            return $"{Filesystem} volume";
+        }
+    }
 
     public string DisplayName => Letter is { } letter
         ? $"{letter}: {(string.IsNullOrWhiteSpace(Label) ? Filesystem : Label)}"

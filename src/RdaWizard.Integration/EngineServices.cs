@@ -41,7 +41,52 @@ public sealed class DeviceEnumerationService : IDeviceEnumerationService
             };
         }
 
-        return new EnumerationResult { Success = true, Disks = disks, RawOutput = run.TailText };
+        return new EnumerationResult { Success = true, Disks = EnrichWithCapacity(disks), RawOutput = run.TailText };
+    }
+
+    private static VolumeInfo WithCapacity(VolumeInfo volume)
+    {
+        if (volume.Letter is not { } letter)
+        {
+            return volume;
+        }
+
+        try
+        {
+            var drive = new DriveInfo(letter.ToString());
+            if (!drive.IsReady)
+            {
+                return volume;
+            }
+
+            return volume with
+            {
+                UsedBytes = Math.Max(0, drive.TotalSize - drive.AvailableFreeSpace),
+            };
+        }
+        catch (ArgumentException)
+        {
+            return volume;
+        }
+        catch (IOException)
+        {
+            return volume;
+        }
+    }
+
+    /// <summary>
+    /// OS capacity pass for the landing tiles' used/total bars — the og
+    /// queries WMI/mountmgr for live capacity next to the engine's list; the
+    /// .NET equivalent is DriveInfo per mounted letter. Unmounted or
+    /// BitLocker volumes report no used figure (the bar hides). Defensive
+    /// per volume: an OS refusal degrades that tile, never the enumeration.
+    /// </summary>
+    private static DiskInfo[] EnrichWithCapacity(IReadOnlyList<DiskInfo> disks)
+    {
+        return disks.Select(disk => disk with
+        {
+            Volumes = disk.Volumes.Select(WithCapacity).ToArray(),
+        }).ToArray();
     }
 }
 
