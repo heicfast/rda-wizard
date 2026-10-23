@@ -542,3 +542,25 @@ Remaining v2 queue (tracked, not slop): Windows-runner golden images +
 FlaUI smoke; Up button (needs folder-breadcrumb history); Type tab tree
 (classified view); AI Recommend / retention / Cloud tab / free-limit gates
 deliberately absent (no AI/licensing/cloud capability — honest scoping).
+
+---
+
+## Coordinated sync — G-01 landed (core 2a93c45)
+
+The core's cr_ui C-ABI shim landed (parallel session-6; independently
+verified against the RE corpus: the og binds DRWUI to the *SearchDLL
+engines in-process via EUCreate*Searcher factory exports — no subprocess,
+no IPC on that leg). Wizard-side truth docs updated in this push:
+
+- CORE-CONTRACT §2.1 rewritten (the "no C ABI today" claims are now
+  history): 57-export C11 surface, cr::Err space, zero-init-safe configs,
+  two-call pattern, ABI-version policy; §14 G-01 row flipped to CLOSED with
+  the v0.2.0-ui swap as the follow-up.
+- ARCHITECTURE §5 (ADR-1): the hedge's "when the shim lands" is now; the
+  swap remains the v0.2.0-ui work item, CLI-subprocess stays the
+  parity-tested default until then.
+- ROADMAP v0.2.0-ui: prerequisites marked LANDED, work unblocked.
+- AUDIT-UI ADR-1: update note added, original ruling preserved.
+
+No Integration code changed in this push — the seam contract is the point;
+the P/Invoke swap is its own tracked work item.

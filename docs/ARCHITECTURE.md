@@ -72,10 +72,13 @@ CLI"). Benefits: crash isolation (engine fault ≠ UI fault), enforced CLI
 parity by construction, `--out file.crsf` as the session transport between
 scan → tree → recover invocations.
 
-When the core's C-ABI shim lands (tracked issue #1), the
-`IScanService`/`ISessionService`/`IRecoveryService` implementations swap to
-in-process bindings **behind the same Core interfaces** — ViewModels and
-views do not change. This seam is the deliberate architecture hedge.
+The core's C-ABI shim **landed** (core 2a93c45: `cr_ui.dll` / `libcr_ui.so`,
+`include/cr/cr_ui.h`, GAP G-01 CLOSED): the `IScanService`/`ISessionService`/
+`IRecoveryService` implementations can now swap to in-process P/Invoke
+bindings **behind the same Core interfaces** — ViewModels and views do not
+change. The seam was the deliberate architecture hedge; the swap itself is
+the v0.2.0-ui work item (the CLI-subprocess mode stays the parity-tested
+default until then).
 
 ## 6. Truthful degradation map
 

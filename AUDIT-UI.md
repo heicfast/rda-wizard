@@ -30,6 +30,12 @@ Research deliverables (all under `docs/`):
 
 ### ADR-1: UI integration mode — CLI-subprocess now, native shim later (G-01)
 
+> **Update (core 2a93c45):** G-01 is CLOSED — the `cr_ui` C-ABI shim landed
+> (`cr_ui.dll` / `libcr_ui.so`, `include/cr/cr_ui.h`). The "later" half of
+> this ADR is now unblocked; the decision structure is unchanged (swap
+> implementations behind the same Core interfaces when the v0.2.0-ui work
+> starts). The ADR text below is preserved as the original ruling.
+
 `core_recovery` exposes a **C++20 class surface with no C ABI and no exported
 DLL**. The prompt names two sanctioned surfaces: "public APIs **or its CLI
 contract**." The CLI (`rrecov`) is complete, CI-tested, and the parity surface

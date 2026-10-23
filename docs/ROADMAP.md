@@ -20,7 +20,9 @@ Closing (tracked, in order):
 
 ## v0.2.0-ui — native engine binding
 
-When core lands the C ABI shim (issue #1) and snapshot APIs (issue #2/#3):
+Core prerequisites LANDED: the C ABI shim (issue #1 — `cr_ui.dll` /
+`libcr_ui.so`, G-01 closed at core 2a93c45) and the snapshot APIs
+(issues #2/#3 — closed with it). Unblocked:
 - Swap `IScanService`/`ISessionService`/`IRecoveryService` implementations
   to in-process bindings behind the same interfaces (ADR-1 hedge pays off).
 - Live results pane at stage boundaries; select-and-recover during scan

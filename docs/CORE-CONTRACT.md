@@ -50,19 +50,24 @@ Version note (DISCREPANCY, cosmetic): CMake `project(core_recovery VERSION 0.1.0
 
 ## 2. Linkage model
 
-### 2.1 What actually exists (no C ABI today)
+### 2.1 What exists (the C ABI landed — G-01 CLOSED at core 2a93c45)
 
 - Build targets: `cr_core` (STATIC), `cr_win` (STATIC, links `cfgmgr32 Advapi32`), `rrecov`
-  (exe). External deps: zlib (sessions), liblz4 + zstd (ZFS compressed extents; optional at
-  build time — `compress::codec_available()` reports).
-- **There is no `extern "C"`, no exported DLL, no flat C interface anywhere in
-  `include/cr/`.** The public surface is C++20: namespaces (`cr::`, `cr::tree::`,
-  `cr::orchestrator::`, …), classes with virtuals (`IStorageDevice`, `DestIo`,
-  `IWriteDevice`, `CancelToken`), `std::unique_ptr` returns, `std::u16string`,
-  `std::function` (carve namer), raw function-pointer callbacks.
-- Consequence: an in-process UI **must** compile its shim against these headers with a
-  binary-compatible MSVC (same major toolset, same C++ runtime flavor) — or the UI team
-  adds its own flat-C wrapper DLL (UI-owned; not a core deliverable). See GAP **G-01**.
+  (exe), and **`cr_ui` (SHARED: `cr_ui.dll` / `libcr_ui.so`)** — the flat-C binding surface
+  over `cr_core` + `cr_win`. External deps: zlib (sessions), liblz4 + zstd (ZFS compressed
+  extents; required — codec-less builds are a fatal configure error).
+- **`include/cr/cr_ui.h` (C11): 57 `cr_ui_*` exports** — opaque handles
+  (device/scan/session/snapshot/preview/recovery), u32 codes from the SAME `cr::Err`
+  numeric space as §2.2 (no invented families), UTF-8 in / two-call-size buffers out,
+  heap strings freed with `cr_ui_string_free`, zero-initialized config structs that are
+  ALWAYS safe (0 = default, never "nothing matches"), C progress callbacks (no cancel
+  semantics — the token functions are the cancel path), `cr_ui_abi_version()` +
+  bump-on-breaking-change policy, thread-local `cr_ui_last_error()`, catch-all per entry.
+  This is the og's in-process engine-binding architecture (EUCreate\*Searcher factories →
+  controller interfaces) flat-C adapted; every flow is 1:1 with a CLI line (§13 remains
+  the parity contract — in-process sessions must be byte-identical).
+- The C++20 class surface (namespaces, virtuals, `std::unique_ptr`, `std::u16string`)
+  remains the core-internal contract; the UI consumes **only** `cr_ui.h`.
 - Calling convention: default MSVC `__cdecl` everywhere; no `__stdcall`, no varargs in the
   public headers. All callbacks are plain function pointers (no `__cdecl` annotations).
 
@@ -707,7 +712,7 @@ deliberate scope, UI degrades truthfully rather than filing.
 
 | ID | Gap | Class | UI degradation |
 |---|---|---|---|
-| G-01 | No stable C ABI / no exported DLL — C++20 class surface only | absent | UI owns a MSVC-compiled shim DLL, or CLI-subprocess mode |
+| G-01 | ~~No stable C ABI / no exported DLL~~ **CLOSED at core 2a93c45** — `cr_ui` shared library + `include/cr/cr_ui.h` (57 exports, cr::Err space) | resolved | v0.2.0-ui: swap Integration to in-process P/Invoke bindings behind the same Core interfaces; until then CLI-subprocess mode remains the parity-tested default |
 | G-02 | No mid-scan result-tree snapshot/read lock — traversal during emission is a data race | absent | Results pane populates at stage boundaries / scan end only |
 | G-03 | Mid-scan recovery unsupported (tree mutation + no API); CLI saves sessions only on scan success | absent | Recover only after scan completes; UI-shim may save-on-cancel via library |
 | G-04 | Fine-grained progress only for the NTFS walk; all other engines/stages emit stage-boundary ticks only (progress passed as nullptr) | declared-not-wired | Coarse progress bars + indeterminate sub-stage spinner |
