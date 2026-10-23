@@ -6,17 +6,20 @@ namespace RdaWizard.Integration.Parsers;
 
 /// <summary>
 /// Parsers for the frozen rrecov output grammar (docs/CORE-CONTRACT.md §13;
-/// formats verified line-by-line against rrecov.cpp @ 183dfcd). Every parser
-/// is pure (string in → model out) and unit-tested against golden fixtures.
+/// formats verified line-by-line against rrecov.cpp — re-verified at the
+/// parity audit against engine HEAD, see docs/PARITY-AUDIT.md F-C-1: the
+/// table kind is the FINAL UNBRACKETED token; only [removable|fixed] is
+/// bracketed). Every parser is pure (string in → model out) and unit-tested
+/// against golden fixtures shaped like real engine output.
 /// </summary>
 public static partial class ListOutputParser
 {
-    [GeneratedRegex(@"^Disk\s+(\d+):\s+(\d+)\s+MiB\s+\((.*?)\)\s+(\S+)\s+\[(\w[\w-]*)\]\s+\[(removable|fixed|no-table|GPT|MBR)\]", RegexOptions.CultureInvariant)]
-    private static partial Regex DiskLineRegex();
-
-    // "  Disk %u: %llu MiB (%s) %s [%s] %s" — fields: number, MiB, (model), serial, [removable|fixed], [GPT|MBR|no-table]
+    // Engine format (rrecov.cpp print_disks):
+    //   "  Disk %u: %llu MiB (%s) %s [%s] %s" — number, MiB, (model), serial,
+    //   [removable|fixed], then the table kind as the final bare token:
+    //   GPT | MBR | - (table parsed, layout neither GPT nor MBR) | no-table.
     private static readonly Regex DiskLine = new(
-        @"^Disk\s+(\d+):\s+(\d+)\s+MiB\s+\((.*?)\)\s+(.*?)\s+\[(removable|fixed)\]\s+\[(GPT|MBR|no-table)\]$",
+        @"^Disk\s+(\d+):\s+(\d+)\s+MiB\s+\((.*?)\)\s+(\S+)\s+\[(removable|fixed)\]\s+(GPT|MBR|no-table|-)$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     // "    %c: %s %s %llu MiB %s" — letter, fs, label, MiB, optional [BitLocker]

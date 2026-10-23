@@ -626,7 +626,11 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
 ### Behavior details
 
 - **list**: `enumerate_disks(200,…)` + volumes; prints `N disk(s), M volume(s)`, per disk
-  `Disk %u: %llu MiB (model) serial [removable|fixed] [GPT|MBR|no-table]`, per volume
+  `Disk %u: %llu MiB (model) serial [removable|fixed] GPT|MBR|-|no-table` — the table
+  kind is the final **UNBRACKETED** token (`-` = table parsed but layout neither GPT nor
+  MBR; `no-table` = table parse failed). CORRECTED per docs/PARITY-AUDIT.md **F-C-1**: the
+  earlier `[GPT|MBR|no-table]` bracketing in this document was a transcription error that
+  shipped a parser matching zero real disks. Per volume
   `    %c: fs label %llu MiB [BitLocker]`. **Exit 0 even when enumeration fails** (prints
   `enumeration failed`) — GAP **G-20** for subprocess error detection.
 - **scan**: `--disk N` whole-disk view (RDA first: `open_rda_partition(L"RDA",N,0)`,

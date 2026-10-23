@@ -5,10 +5,13 @@ using Xunit;
 namespace RdaWizard.Integration.Tests.Parsers;
 
 /// <summary>
-/// Golden fixtures frozen from rrecov.cpp list output (CORE-CONTRACT §13):
+/// Golden fixtures frozen from rrecov.cpp list output (CORE-CONTRACT §13,
+/// corrected per docs/PARITY-AUDIT.md F-C-1 — table kind is the final
+/// UNBRACKETED token; engine prints 'GPT'/'MBR'/'-' when the table parsed
+/// and 'no-table' when it did not):
 /// <code>
 /// %zu disk(s), %zu volume(s)
-///   Disk %u: %llu MiB (%s) %s [removable|fixed] [GPT|MBR|no-table]
+///   Disk %u: %llu MiB (%s) %s [removable|fixed] GPT|MBR|-|no-table
 ///     %c: %s %s %llu MiB [BitLocker]
 /// </code>
 /// </summary>
@@ -17,10 +20,10 @@ public class ListOutputParserTests
     private static readonly string[] GoldenOutput =
     {
         "2 disk(s), 3 volume(s)",
-        "  Disk 0: 476940 MiB (Samsung SSD 970 EVO 500GB) S4EWNX0N123456 [fixed] [GPT]",
+        "  Disk 0: 476940 MiB (Samsung SSD 970 EVO 500GB) S4EWNX0N123456 [fixed] GPT",
         "    C: NTFS Windows 190000 MiB",
         "    D: FAT32 DATA 10000 MiB",
-        "  Disk 1: 76332 MiB (SanDisk Cruzer Glide 3.0) 1234567890 [removable] [MBR]",
+        "  Disk 1: 76332 MiB (SanDisk Cruzer Glide 3.0) 1234567890 [removable] MBR",
         "    E: exFAT PHOTOS 70000 MiB [BitLocker]",
     };
 
@@ -85,10 +88,41 @@ public class ListOutputParserTests
         var lines = new[]
         {
             "1 disk(s), 0 volume(s)",
-            "  Disk 2: 1000 MiB (RAW CARD) NONE [removable] [no-table]",
+            "  Disk 2: 1000 MiB (RAW CARD) NONE [removable] no-table",
         };
         Assert.True(ListOutputParser.TryParse(lines, out var disks, out _));
         Assert.Equal(PartitionTableKind.None, disks[0].Table);
+    }
+
+    [Fact]
+    public void UnknownLayoutDash_Parsed()
+    {
+        // PARITY-AUDIT F-C-1: engine prints '-' when the table parsed but the
+        // layout is neither GPT nor MBR (rrecov.cpp:239-242) — must parse as
+        // None, not be dropped (a dropped line loses the whole disk).
+        var lines = new[]
+        {
+            "1 disk(s), 0 volume(s)",
+            "  Disk 3: 2048 MiB (LOOP DEV) X [fixed] -",
+        };
+        Assert.True(ListOutputParser.TryParse(lines, out var disks, out _));
+        Assert.Single(disks);
+        Assert.Equal(PartitionTableKind.None, disks[0].Table);
+    }
+
+    [Fact]
+    public void BracketedTableKind_RejectedAsEngineDrift()
+    {
+        // The OLD (wrong) grammar — CORE-CONTRACT §13 transcription error.
+        // Real engine output NEVER brackets the table kind; if a line like
+        // this ever parses again, the contract regressed. Guard test.
+        var lines = new[]
+        {
+            "1 disk(s), 0 volume(s)",
+            "  Disk 0: 100 MiB (M) S [fixed] [GPT]",
+        };
+        Assert.False(ListOutputParser.TryParse(lines, out var disks, out _));
+        Assert.Empty(disks);
     }
 }
 

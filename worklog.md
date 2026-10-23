@@ -224,3 +224,18 @@ the engine has always printed it unbracketed. See F-C-1 below.
   holds the authoritative copy. Gate pushed BEFORE fixes, per mandate.
 - Next: F-C-1 surgical fix in THIS repo (parser + fixture + tests) paired
   with the CORE-CONTRACT §13 correction in core; issues filed for the rest.
+
+### PARITY-W1 — F-C-1 P0 FIXED: ListOutputParser matches real engine output
+
+- Regex corrected to the actual rrecov grammar (table kind = final
+  UNBRACKETED token: GPT|MBR|-|no-table; only [removable|fixed] is
+  bracketed). Dead GeneratedRegex DiskLineRegex (declared, never used —
+  a second drifting copy of the grammar) removed.
+- Golden fixtures reshaped to real engine lines; new guard tests:
+  UnknownLayoutDash_Parsed ('-' layout token), BracketedTableKind_
+  RejectedAsEngineDrift (the old wrong grammar must never parse again).
+- docs/CORE-CONTRACT.md §13 corrected (root cause: transcription error
+  that shipped a parser matching zero real disks — Home was permanently
+  empty against a real engine).
+- Verified locally with .NET 10.0.402: Integration 49/49 (47 + 2 new),
+  Core 52/52. WPF App still Windows-CI-only.
