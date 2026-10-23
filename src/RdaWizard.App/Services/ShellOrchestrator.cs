@@ -98,7 +98,7 @@ public sealed class ShellOrchestrator : IDisposable
     public async Task CancelScanAsync()
     {
         var confirmed = await _main.ScanProgress.ConfirmCancelAsync().ConfigureAwait(true);
-        if (confirmed != Core.Services.DialogResult.Confirmed)
+        if (!confirmed)
         {
             return;
         }
@@ -326,7 +326,7 @@ public sealed class ShellOrchestrator : IDisposable
         });
     }
 
-    private void ShowLicenses()
+    private static void ShowLicenses()
     {
         var licenses = LicenseText.Build();
         System.Windows.MessageBox.Show(licenses, "Open-source licenses", MessageBoxButton.OK, MessageBoxImage.Information);
