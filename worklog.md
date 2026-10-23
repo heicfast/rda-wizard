@@ -239,3 +239,20 @@ the engine has always printed it unbracketed. See F-C-1 below.
   empty against a real engine).
 - Verified locally with .NET 10.0.402: Integration 49/49 (47 + 2 new),
   Core 52/52. WPF App still Windows-CI-only.
+
+### PARITY-W1/W2 — fix waves + registry promotion (independent auditor)
+
+- F-C-1 P0 fixed (bd83be3): parser regex + golden fixtures + guard tests
+  + CORE-CONTRACT §13; verified Integration 49/49 + Core 52/52 on
+  net10.0.402; Windows CI green (ci + ui-smoke).
+- CORE-CONTRACT drift corrections (042e081): §5.1/§5.2 LDM trio
+  (unconditional hook + ldm_resolver + cross-disk registry), §5.3
+  0..10000 removal, §13 trailing spaces, G-18 gang clause, G-19
+  resolver. PARITY-DELTAS.md UI mirror landed (ADR framing corrected:
+  preview caps are og FREE-TIER gates, D-28).
+- Issues filed: rda-wizard#1 (parser P0 notice + verify-Home-against-
+  real-engine action).
+- Auditor engine-side fixes in core (details in core worklog
+  PARITY-W1/W2): FAT12 sentinels, NTFS viability probe, fixup
+  first-2-tails, HFS+ layout, NVMe offsets, carve double-count,
+  undo-apply guard, CI unblock. Suite 159/159 green.
