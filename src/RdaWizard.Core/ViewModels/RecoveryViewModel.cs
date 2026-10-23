@@ -23,6 +23,21 @@ public partial class RecoveryViewModel : ViewModelBase
     private readonly ISettingsService _settings;
 
     [ObservableProperty] private string? _destinationDirectory;
+
+    /// <summary>Bytes the pending recovery needs (selection or whole
+    /// session) — drives the og insufficient-space gate (F-C-4: needed-bytes
+    /// + continue-anyway, NOT a hard refusal).</summary>
+    [ObservableProperty] private long _neededBytes;
+
+    /// <summary>Free bytes at the current destination root; null when the
+    /// root is unmappable.</summary>
+    [ObservableProperty] private long? _destinationFreeBytes;
+
+    /// <summary>True when free space cannot cover the needed bytes — the og
+    /// "Insufficient Disk Space" gate state (soft: Continue-anyway /
+    /// Reselect).</summary>
+    [ObservableProperty] private bool _insufficientSpace;
+
     [ObservableProperty] private CollisionPolicy _collisionPolicy = CollisionPolicy.Rename;
     [ObservableProperty] private bool _preserveFolderStructure = true;
     [ObservableProperty] private bool _isPreflightRunning;
@@ -58,6 +73,40 @@ public partial class RecoveryViewModel : ViewModelBase
         CollisionPolicy = ParseCollisionPolicy(_settings.Current.CollisionPolicy);
         PreserveFolderStructure = _settings.Current.PreserveFolderStructure;
         DestinationDirectory = _settings.Current.DefaultRecoveryDestination;
+    }
+
+    /// <summary>Refreshes the og space-gate state from the destination
+    /// root's free space vs the needed bytes (soft gate — never refuses).</summary>
+    public void RefreshSpaceGate()
+    {
+        DestinationFreeBytes = null;
+        InsufficientSpace = false;
+        if (string.IsNullOrWhiteSpace(DestinationDirectory))
+        {
+            return;
+        }
+
+        try
+        {
+            var root = Path.GetPathRoot(Path.GetFullPath(DestinationDirectory));
+            if (string.IsNullOrEmpty(root))
+            {
+                return; // relative oddity — no truthful root
+            }
+
+            var drive = new DriveInfo(root); // volume letter (Windows) or filesystem root (Unix hosts)
+            if (!drive.IsReady)
+            {
+                return;
+            }
+
+            DestinationFreeBytes = drive.AvailableFreeSpace;
+            InsufficientSpace = drive.AvailableFreeSpace < NeededBytes;
+        }
+        catch (ArgumentException)
+        {
+            // Unmappable root — no truthful free-space figure.
+        }
     }
 
     /// <summary>Prepares the request from the current session + selection. Returns refusals (empty = GO).</summary>

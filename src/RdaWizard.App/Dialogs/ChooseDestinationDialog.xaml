@@ -1,0 +1,131 @@
+<Window x:Class="RdaWizard.App.Dialogs.ChooseDestinationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Width="540"
+        MinHeight="380"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        mc:Ignorable="d"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <!-- og ChooseDestinationPathDialog (29 QSS rules — most-styled surface;
+         R-A §4 Recovery phase): title + "You have N file(s) (size) to
+         recover." + destination volume rows with capacity + source-disk
+         warning + "Choose folder..." row + Save (disabled until a
+         destination is selected). Cloud tab omitted (standing cloud/NAS
+         exclusion — no dead tabs). -->
+    <Window.Resources>
+        <conv:ByteSizeConverter x:Key="ByteSize" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+        <conv:ByteSizeConverter x:Key="Needed" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+    </Window.Resources>
+
+    <Border Margin="16"
+            Background="{DynamicResource Brush.Bg.Card}"
+            BorderBrush="{DynamicResource Brush.Border.Default}"
+            BorderThickness="1"
+            CornerRadius="8"
+            SnapsToDevicePixels="True">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="4" Direction="270"
+                              Opacity="0.16" Color="#1F2329" />
+        </Border.Effect>
+        <Grid Margin="24,20,24,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Style="{DynamicResource Text.Header}"
+                       Text="Choose a destination path to save the file:" />
+
+            <TextBlock Grid.Row="1"
+                       Style="{DynamicResource Text.BodySecondary}"
+                       Margin="0,6,0,12"
+                       Text="{Binding RecoverableText}" />
+
+            <!-- Destination volume rows (og: letter + label + used/total +
+                 warning icon on the SOURCE disk) -->
+            <ListBox Grid.Row="2"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     ItemsSource="{Binding Destinations}"
+                     SelectedItem="{Binding SelectedDestination, Mode=TwoWay}"
+                     HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <controls:Icon Grid.Column="0"
+                                           IconName="Icon.Device.Disk" IconKind="Solid" IconSize="32"
+                                           IconBrush="{DynamicResource Brush.Brand.Primary}"
+                                           VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Style="{DynamicResource Text.BodyStrong}"
+                                           Text="{Binding Name}" />
+                                <TextBlock Style="{DynamicResource Text.Caption}"
+                                           Foreground="{DynamicResource Brush.Text.Secondary}"
+                                           Typography.NumeralAlignment="Tabular"
+                                           Margin="0,2,0,0"
+                                           Text="{Binding CapacityText}" />
+                            </StackPanel>
+                            <!-- Source-disk warning (og warning icons on
+                                 source-volume rows; the hard block fires at
+                                 preflight) -->
+                            <controls:Icon Grid.Column="2"
+                                           IconName="Icon.Status.Warning" IconSize="18"
+                                           IconBrush="{DynamicResource Brush.Status.WarningStrong}"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0"
+                                           Visibility="{Binding IsSourceDisk, Converter={StaticResource BoolToVisibility}}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Resources>
+                    <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:conv="clr-namespace:RdaWizard.App.Converters" />
+                </ListBox.Resources>
+            </ListBox>
+
+            <!-- "Choose folder..." row (og: native folder picker entry) -->
+            <Button Grid.Row="2"
+                    Style="{DynamicResource Button.Ghost}"
+                    HorizontalContentAlignment="Left"
+                    Margin="0,4,0,0"
+                    VerticalAlignment="Bottom"
+                    Click="OnChooseFolderClick"
+                    AutomationProperties.Name="Choose folder">
+                <StackPanel Orientation="Horizontal">
+                    <controls:Icon IconName="Icon.Device.FolderOpen" IconSize="24"
+                                   IconBrush="{DynamicResource Brush.Text.Secondary}" />
+                    <TextBlock Text="Choose folder..."
+                               Style="{DynamicResource Text.Body}"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <!-- Save: disabled until a destination is selected (og verbatim) -->
+            <Button Grid.Row="3"
+                    Style="{DynamicResource Button.Hero}"
+                    MinWidth="120" Height="34"
+                    HorizontalAlignment="Right"
+                    Margin="0,14,0,0"
+                    Content="Save"
+                    IsEnabled="{Binding HasSelection}"
+                    Click="OnSaveClick" />
+        </Grid>
+    </Border>
+</Window>

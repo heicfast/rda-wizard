@@ -5,6 +5,7 @@ using RdaWizard.Core.Models;
 using RdaWizard.Core.Navigation;
 using RdaWizard.Core.Services;
 using RdaWizard.Core.ViewModels;
+using RdaWizard.App.Dialogs;
 using RdaWizard.Core.Wizard;
 
 namespace RdaWizard.App.Services;
@@ -23,6 +24,7 @@ public sealed class ShellOrchestrator : IDisposable
     private readonly ILogger<ShellOrchestrator> _logger;
     private readonly ISessionService _sessions;
     private readonly IDialogService _dialogs;
+    private readonly IDeviceEnumerationService _devices;
 
     private MainViewModel _main = null!;
     private CancellationTokenSource _flowCancellation = new();
@@ -30,11 +32,13 @@ public sealed class ShellOrchestrator : IDisposable
     public ShellOrchestrator(
         ILogger<ShellOrchestrator> logger,
         ISessionService sessions,
-        IDialogService dialogs)
+        IDialogService dialogs,
+        IDeviceEnumerationService devices)
     {
         _logger = logger;
         _sessions = sessions;
         _dialogs = dialogs;
+        _devices = devices;
     }
 
     public void Wire(MainViewModel main)
@@ -135,7 +139,7 @@ public sealed class ShellOrchestrator : IDisposable
 
         if (string.IsNullOrWhiteSpace(_main.Recovery.DestinationDirectory))
         {
-            return; // user dismissed the picker
+            return; // user dismissed the destination dialog
         }
 
         // Preflight first: it computes the overlap gate the transition guard checks.
@@ -147,6 +151,32 @@ public sealed class ShellOrchestrator : IDisposable
                 "Destination not safe",
                 string.Join(Environment.NewLine, _main.Recovery.PreflightRefusals)).ConfigureAwait(true);
             return;
+        }
+
+        // og "Insufficient Disk Space" gate (F-C-4: needed-bytes +
+        // continue-anyway — never a silent hard refusal).
+        _main.Recovery.NeededBytes = RecoveryNeededBytes(kind);
+        _main.Recovery.RefreshSpaceGate();
+        if (_main.Recovery.InsufficientSpace)
+        {
+            var deficit = _main.Recovery.NeededBytes - (_main.Recovery.DestinationFreeBytes ?? 0);
+            var proceed = await _dialogs.ConfirmAsync(
+                "Insufficient Disk Space",
+                $"Need an additional {deficit / (1024.0 * 1024 * 1024):0.##} GB of space. Please free up space or select another drive.",
+                "Continue").ConfigureAwait(true);
+            if (proceed != DialogResult.Confirmed)
+            {
+                await PickDestinationAsync().ConfigureAwait(true);
+                if (string.IsNullOrWhiteSpace(_main.Recovery.DestinationDirectory))
+                {
+                    return;
+                }
+                _main.Recovery.RefreshSpaceGate();
+                if (_main.Recovery.InsufficientSpace)
+                {
+                    return; // reselected destination is still short — stop honestly
+                }
+            }
         }
 
         var context = CurrentContext();
@@ -161,7 +191,9 @@ public sealed class ShellOrchestrator : IDisposable
         _ = _main.Recovery.RecoverAsync(_flowCancellation.Token);
     }
 
-    /// <summary>Destination picker + immediate preflight re-run (browse button path).</summary>
+    /// <summary>og ChooseDestinationPathDialog (volume rows with capacity +
+    /// source-disk warning + "Choose folder..." row + Save gated on a
+    /// selection) + immediate preflight re-run.</summary>
     public async Task PickDestinationAsync()
     {
         if (_main.Detail.Session is null)
@@ -170,14 +202,36 @@ public sealed class ShellOrchestrator : IDisposable
             return;
         }
 
-        var picked = await _dialogs.PickFolderAsync("Choose a recovery destination (must be on a different disk than the source)").ConfigureAwait(true);
-        if (picked is null)
+        var enumeration = await _devices.EnumerateAsync(_flowCancellation.Token).ConfigureAwait(true);
+        var sourceDisk = ResolveSourceDisk(_main.Detail.Session);
+        var needed = RecoveryNeededBytes(RecoveryRequestKind.All);
+        var fileCount = _main.Detail.TotalFileCount;
+
+        var dialog = new ChooseDestinationDialog(enumeration.Volumes, sourceDisk, needed, fileCount);
+        if (dialog.ShowDialog() != true || dialog.SelectedPath is null)
         {
             return;
         }
 
-        _main.Recovery.DestinationDirectory = picked;
+        _main.Recovery.DestinationDirectory = dialog.SelectedPath;
         await _main.Recovery.RunPreflightAsync(_main.Detail.Session, _flowCancellation.Token).ConfigureAwait(true);
+    }
+
+    /// <summary>Bytes the recovery funnel needs: the checked selection when
+    /// present, the whole session otherwise.</summary>
+    private long RecoveryNeededBytes(RecoveryRequestKind kind)
+    {
+        var selected = _main.Detail.SelectedNodes;
+        return kind == RecoveryRequestKind.Selection && selected.Count > 0
+            ? selected.Sum(n => n.LogicalSize)
+            : _main.Detail.FoundBytes;
+    }
+
+    private static int ResolveSourceDisk(LoadedSession session)
+    {
+        // The scan recorded the source disk when it wrote the session
+        // (SessionSourceRegistry); fall back to the session-path convention.
+        return SessionSourceRegistry.ResolveDisk(session.SessionPath);
     }
 
     /// <summary>Recovering: cancel-with-confirmation.</summary>

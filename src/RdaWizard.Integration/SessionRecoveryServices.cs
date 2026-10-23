@@ -136,19 +136,9 @@ public sealed class RecoveryService : IRecoveryService
             refusals.Add("The destination folder is not accessible: " + ex.Message);
         }
 
-        // 3. Free-space floor check (pre-flight, prompt I.5).
-        try
-        {
-            var destinationDrive = new DriveInfo(root);
-            if (destinationDrive.IsReady && destinationDrive.AvailableFreeSpace < 64L * 1024 * 1024)
-            {
-                refusals.Add($"The destination has only {destinationDrive.AvailableFreeSpace >> 20} MiB free — not enough space for a recovery.");
-            }
-        }
-        catch (ArgumentException)
-        {
-            // Unmappable root (network/odd path): the engine's writer surfaces failures itself.
-        }
+        // 3. Space: the needed-bytes soft gate (og "Insufficient Disk Space"
+        // — Continue-anyway / Reselect) lives in the RecoveryViewModel
+        // (F-C-4): preflight keeps only the HARD gates (overlap, writability).
 
         return refusals;
     }
