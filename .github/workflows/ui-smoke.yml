@@ -36,10 +36,25 @@ jobs:
       - name: Run FlaUI smoke
         run: dotnet test tests/RdaWizard.Ui.Tests/RdaWizard.Ui.Tests.csproj -c Release --logger trx --results-directory ./TestResults
 
-      - name: Upload test results
+      - name: Collect app logs (diagnosability)
+        if: always()
+        shell: pwsh
+        run: |
+          $logDir = Join-Path $env:LOCALAPPDATA "RdaWizard\logs"
+          if (Test-Path $logDir) {
+            New-Item -ItemType Directory -Force -Path ./AppLogs | Out-Null
+            Copy-Item $logDir\* ./AppLogs/ -ErrorAction SilentlyContinue
+            Get-ChildItem ./AppLogs | ForEach-Object { Write-Host "===== $($_.Name) ====="; Get-Content $_.FullName -Tail 80 }
+          } else {
+            Write-Host "No app log directory at $logDir — the app may have died before Serilog initialized."
+          }
+
+      - name: Upload test results + app logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-smoke-results-${{ github.run_id }}
-          path: ./TestResults
+          path: |
+            ./TestResults
+            ./AppLogs
           retention-days: 7

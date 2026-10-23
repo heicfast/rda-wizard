@@ -87,9 +87,15 @@ public partial class App : Application
         var mainViewModel = Services.GetRequiredService<MainViewModel>();
         var mainWindow = new MainWindow { DataContext = mainViewModel };
         MainWindow = mainWindow;
+        // Explicit shutdown mode: the async host start must not race the
+        // no-MainWindow-yet exit path (classic WPF async-OnStartup bug).
+        mainWindow.Closed += static (_, _) => Current?.Shutdown();
 
         var orchestrator = Services.GetRequiredService<ShellOrchestrator>();
         orchestrator.Wire(mainViewModel);
+
+        // Unhandled UI exceptions: logged + user-informed, never silent death.
+        DispatcherUnhandledException += AppDispatcherUnhandledException;
 
         mainWindow.Show();
 
