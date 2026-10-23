@@ -513,3 +513,32 @@ T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity l
   64MiB hard floor removed from preflight).
 - 87 Core + 49 Integration green. Remaining: T9 sidebar pages detail pass,
   T10 zero-warning sweep + final parity loop.
+
+### S3-T9/T10 — sidebar og copy + zero-warning gate (commits ae0b40b, 763da80)
+
+- T9: all five sidebar pages re-extracted via content-area crop-VLM and
+  reconciled to og verbatim copy (SD-card subtitle + SDR/SSR/DVR tiles +
+  links lead-in; More-Tools descriptions; File Repair label-only cards —
+  invented sub-descriptions REMOVED; Lost-Partition subtitle + scenario
+  subtexts; ChronoSnap feature descriptions).
+- T10: zero-warning build achieved (CA1707 test-naming exemption documented
+  per csproj; CA1816 fixed). All gates green at commit 763da80: 0 errors /
+  0 warnings; 87 Core + 49 Integration tests; tokens byte-stable (106 keys
+  × 3 themes); WCAG contrast matrix 0 failures.
+
+## Session 3 completion summary (og-exact page-by-page rebuild)
+
+Recovered from the outage (2 stranded commits pushed first lesson: push
+early, worklog with every unit). Rebuilt per the crop-VLM + architecture
+methodology: landing (tiles/trio/capacity), Detail scan state (og bottom
+bar + ADR-2 stage-boundary browse-while-scanning), Detail results state
+(filter bar/preview/context menu/tree rollups), truthful stop semantics
+(exit-3 + checkpoint), og recovery funnel (destination dialog + F-C-4 space
+gate), sidebar og copy, zero-warning. Slop register: S-1..S-9 all resolved
+(S-8 via AppModalDialog custom labels; driver-fallback About copy remains
+the ADR-5-sanctioned delta — policy override only if the owner asks).
+
+Remaining v2 queue (tracked, not slop): Windows-runner golden images +
+FlaUI smoke; Up button (needs folder-breadcrumb history); Type tab tree
+(classified view); AI Recommend / retention / Cloud tab / free-limit gates
+deliberately absent (no AI/licensing/cloud capability — honest scoping).
