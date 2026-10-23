@@ -11,6 +11,9 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,28,40,24" MaxWidth="720" HorizontalAlignment="Left">
             <TextBlock Style="{DynamicResource Text.Title}" Text="Lost Partition Rescue" />
+            <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                       Margin="0,6,0,0"
+                       Text="{Binding Subtitle}" />
 
             <ItemsControl ItemsSource="{Binding Scenarios}" Margin="0,24,0,0">
                 <ItemsControl.ItemTemplate>

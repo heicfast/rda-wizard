@@ -27,10 +27,6 @@
                                 BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="{Binding Title}" />
-                                <TextBlock Style="{DynamicResource Text.Caption}"
-                                           Margin="0,4,0,0"
-                                           TextWrapping="Wrap"
-                                           Text="{Binding Description}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>

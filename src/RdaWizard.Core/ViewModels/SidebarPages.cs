@@ -23,13 +23,26 @@ public abstract partial class SidebarPageViewModel : ViewModelBase
 /// </summary>
 public partial class SdCardViewModel : SidebarPageViewModel
 {
+    public sealed record FeatureTile(string Title, string Description, string Tag);
+
+    /// <summary>The three og feature tiles (labels + sub-lines + tool tags
+    /// as extracted from the 02-landing sd-card page capture).</summary>
+    public IReadOnlyList<FeatureTile> Cards { get; init; } = [];
+
     private readonly ILogger<SdCardViewModel> _logger;
 
     public SdCardViewModel(ILogger<SdCardViewModel> logger)
     {
         _logger = logger;
         Title = "Connect Your Memory Card to Recover Lost Photos & Videos";
-        Subtitle = "Show all external devices";
+        Subtitle = "Connect your SD card to PC/Laptop with a card reader to recover the deleted, formatted and other lost photos and videos from cameras, UAV, dash cams and monitors, etc.";
+
+        Cards =
+        [
+            new FeatureTile("Fix SD card access", "Repair SD card &amp; restore access.", "SDR"),
+            new FeatureTile("Photos that open", "Rebuild fragmented photos.", "SSR"),
+            new FeatureTile("Video that play", "Reconstruct fragmented videos.", "DVR"),
+        ];
     }
 
     /// <summary>"Show all external devices" — returns to the landing device list.</summary>
@@ -53,12 +66,12 @@ public partial class MoreToolsViewModel : SidebarPageViewModel
 
     public IReadOnlyList<ToolCard> Tools { get; } =
     [
-        new("Crashed PC Rescue", "Recover data from a PC that fails to start", "Tool.CrashedPc", IsAvailableInThisBuild: false),
-        new("NAS and Linux", "Recover data from NAS servers and Linux systems", "Tool.Nas", IsAvailableInThisBuild: false),
-        new("RAID Recovery", "Reconstruct data from RAID arrays", "Tool.Raid", IsAvailableInThisBuild: false),
-        new("Cloud Recovery", "Recover data from cloud drives", "Tool.Cloud", IsAvailableInThisBuild: false),
-        new("Image Recovery", "Recover data from a disk image file", "Tool.Image", IsAvailableInThisBuild: false),
-        new("Disk Health", "Check disk health and predict failures", "Tool.DiskHealth", IsAvailableInThisBuild: true),
+        new("Crashed PC Rescue", "Rescue data from an unbootable computer for any reason.", "Tool.CrashedPc", IsAvailableInThisBuild: false),
+        new("NAS and Linux", "Easily recover your NAS and Linux data.", "Tool.Nas", IsAvailableInThisBuild: false),
+        new("RAID Recovery", "Automatically detect and recover RAID data.", "Tool.Raid", IsAvailableInThisBuild: false),
+        new("Cloud Recovery", "Recover your lost or deleted data from Cloud drives.", "Tool.Cloud", IsAvailableInThisBuild: false),
+        new("Image Recovery", "Create and restore full images of physical drives and virtual machines.", "Tool.Image", IsAvailableInThisBuild: false),
+        new("Disk Health", "Check disk health before recovery.", "Tool.DiskHealth", IsAvailableInThisBuild: true),
     ];
 
     /// <summary>Raised when a tool card is activated (the shell routes per-card).</summary>
@@ -80,13 +93,15 @@ public partial class MoreToolsViewModel : SidebarPageViewModel
 /// </summary>
 public partial class FileRepairPageViewModel : SidebarPageViewModel
 {
-    public sealed record RepairOption(string Title, string Description, string IconKey);
+    /// <summary>og cards are label-only (the label is the description —
+    /// 02-landing filerepair capture).</summary>
+    public sealed record RepairOption(string Title, string IconKey);
 
     public IReadOnlyList<RepairOption> Options { get; } =
     [
-        new("Repair corrupted or unplayable videos", "Fix video files that fail to play", "Repair.Video"),
-        new("Repair damaged or partially missing photos", "Fix photos with corrupted data", "Repair.Photo"),
-        new("Repair damaged or cannot be opened documents", "Fix documents that fail to open", "Repair.Document"),
+        new("Repair corrupted or unplayable videos", "Repair.Video"),
+        new("Repair damaged or partially missing photos", "Repair.Photo"),
+        new("Repair damaged or cannot be opened documents", "Repair.Document"),
     ];
 
     /// <summary>Raised when the user activates volume repair (this build's repair flow).</summary>
@@ -109,11 +124,16 @@ public partial class LostPartitionViewModel : SidebarPageViewModel
 {
     public sealed record ScenarioCard(string Title, string Description, string IconKey);
 
+    public LostPartitionViewModel()
+    {
+        Subtitle = "Instantly recover missing or damaged partitions";
+    }
+
     public IReadOnlyList<ScenarioCard> Scenarios { get; } =
     [
-        new("Partition Missing", "The partition was deleted or lost from the disk", "Partition.Missing"),
-        new("Partition Cannot Be Opened", "The partition exists but its file system is damaged", "Partition.Damaged"),
-        new("BitLocker Partition Missing/Damaged", "An encrypted partition is missing or damaged", "Partition.Bitlocker"),
+        new("Partition Missing", "Recover partitions showing as \"Unallocated Space\" or \"RAW\" in Disk Management", "Partition.Missing"),
+        new("Partition Cannot Be Opened", "Fix partitions displaying \"Access Denied\" or \"Format Required\" prompts", "Partition.Damaged"),
+        new("BitLocker Partition Missing/Damaged", "Repair lost or corrupted BitLocker partitions", "Partition.Bitlocker"),
     ];
 
     /// <summary>Raised when the user presses Start (the shell opens the whole-disk scan flow).</summary>
@@ -138,9 +158,9 @@ public partial class ChronoSnapViewModel : SidebarPageViewModel
 
     public IReadOnlyList<FeatureCard> Features { get; } =
     [
-        new("Automatic Protection", "Snapshots are captured automatically as you work", "Snap.Auto"),
-        new("Point-in-Time Recovery", "Go back to any point in time to find your files", "Snap.TimeTravel"),
-        new("Powerful and Independent", "Works independently of Windows file history", "Snap.Independent"),
+        new("Automatic Protection", "Smart, continuous backup that operates effortlessly in the background.", "Snap.Auto"),
+        new("Point-in-Time Recovery", "Restore your files from any historical moment with ease.", "Snap.TimeTravel"),
+        new("Powerful and Independent", "A robust, standalone application that works smoothly within your workflow.", "Snap.Independent"),
     ];
 
     public ChronoSnapViewModel()

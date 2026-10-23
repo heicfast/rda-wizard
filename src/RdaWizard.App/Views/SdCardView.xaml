@@ -6,47 +6,50 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="700" d:DesignWidth="900">
 
-    <!-- og PG-20 (screenshot: 02-landing/landing-sidebar-sdcard-page.png):
-         coaching title + device illustration + 3 feature tiles + links. -->
+    <!-- og PG-20 (02-landing/landing-sidebar-sdcard-page.png): coaching
+         title + subtitle + 3 feature tiles (SDR/SSR/DVR tags) + links. -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40,28,40,24" MaxWidth="720" HorizontalAlignment="Left">
             <TextBlock Style="{DynamicResource Text.Title}"
-                       Text="Connect Your Memory Card to Recover Lost Photos &amp; Videos"
+                       Text="{Binding Title}"
+                       TextWrapping="Wrap" />
+            <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                       Margin="0,8,0,0"
+                       Text="{Binding Subtitle}"
                        TextWrapping="Wrap" />
 
             <UniformGrid Columns="3" Margin="0,24,0,0">
-                <Border Padding="16" CornerRadius="{DynamicResource Radius.Card}"
-                        Background="{DynamicResource Brush.Bg.Card}"
-                        BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="Fix SD card access" />
-                        <TextBlock Style="{DynamicResource Text.Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Repair access errors that make the card unreadable" />
-                    </StackPanel>
-                </Border>
-                <Border Padding="16" CornerRadius="{DynamicResource Radius.Card}"
-                        Background="{DynamicResource Brush.Bg.Card}"
-                        BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="Photos that open" />
-                        <TextBlock Style="{DynamicResource Text.Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Recover photos that display correctly after recovery" />
-                    </StackPanel>
-                </Border>
-                <Border Padding="16" CornerRadius="{DynamicResource Radius.Card}"
-                        Background="{DynamicResource Brush.Bg.Card}"
-                        BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="Video that play" />
-                        <TextBlock Style="{DynamicResource Text.Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Recover videos that play without corruption" />
-                    </StackPanel>
-                </Border>
+                <ItemsControl ItemsSource="{Binding Cards}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="16" CornerRadius="{DynamicResource Radius.Card}"
+                                    Background="{DynamicResource Brush.Bg.Card}"
+                                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                                    BorderThickness="1"
+                                    Margin="0,0,8,0">
+                                <StackPanel>
+                                    <Border Style="{DynamicResource Badge.Tag}"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,0,0,8">
+                                        <TextBlock Style="{DynamicResource Text.Micro}" Text="{Binding Tag}" />
+                                    </Border>
+                                    <TextBlock Style="{DynamicResource Text.BodyStrong}" Text="{Binding Title}" />
+                                    <TextBlock Style="{DynamicResource Text.Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                               Text="{Binding Description}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </UniformGrid>
 
             <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
-                <Button Style="{DynamicResource Button.Link}" Content="Show all external devices" Click="OnShowAllDevicesClick" />
-                <Button Style="{DynamicResource Button.Link}" Content="Get Help" Margin="16,0,0,0" />
+                <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                           VerticalAlignment="Center"
+                           Text="SD card connected but not detected?" />
+                <Button Style="{DynamicResource Button.Link}" Content="Show all external devices" Click="OnShowAllDevicesClick" Margin="8,0,0,0" />
+                <TextBlock Style="{DynamicResource Text.BodySecondary}" VerticalAlignment="Center" Text=" or " />
+                <Button Style="{DynamicResource Button.Link}" Content="Get Help" />
             </StackPanel>
         </StackPanel>
     </ScrollViewer>
