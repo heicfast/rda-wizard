@@ -403,3 +403,51 @@ CI wiring, acceptance grid, tag.
   gallery-artifacts-* for the VLM diff loop.
 - v0.2.0 queue: A-01..A-07 (golden images, perf job, diff loop round 1, Repair/
   Settings/About comps, 32px icon variants).
+
+---
+
+## Session 3 — OG-exact interface rebuild (page-by-page, crop-VLM methodology)
+
+Methodology pivot per user directive: no more batch-VLM over all 63 shots; build page by page
+against the architectural UIUX docs first (R-A digest = 36 artifacts read line-by-line), core
+architecture second (R-B digest), then per-page crop-VLM refinement on the specific screenshot.
+Anti-slop directive: only what architecture/userflow/UIUX docs + 63 shots prove exists.
+
+### S3-T1..T2 — recovery + Phase-0 cleanup (commits 9a3ac94)
+
+- 4 parallel reading agents (R-A UIUX truth / R-B core wiring / R-C codebase audit /
+  R-D research corpus) → digests under /home/z/my-project/reading/ (agent-local, not committed).
+- Crop-VLM toolchain built (scripts-local crop_vlm.py: semantic region crops → VLM extract).
+- P0 fixed: CompletionView crash (missing BoolToVisibility resource) — view later deleted by
+  the shell rebuild anyway.
+- S-3 removed: About "RECOVERY ENGINE" version row + EngineInfoService (invented --version
+  equivalent; no such flag in the frozen CLI). About now OG P33: product/version/license only.
+- S-8 noted: DialogService.ConfirmAsync(confirmLabel) ignored — to be fixed by the OG dialog
+  family rebuild (T8).
+
+### S3-T3 — Shell rebuild to OG structure (commit a22c558, pushed after outage recovery)
+
+Structural restructure per R-A §1/§3 (03-window-class-map, 34-navigatebar, atlas 02-landing):
+- MainWindow = custom chrome: ~35px title bar (brand lockup, hamburger, min/max/close) +
+  6-entry sidebar in 3 sections + stacked page host. Removed: WizardStepper rail (no stepper
+  in og), persistent status bar + "Ready" light (S-1/S-6), driver transport caption (S-5),
+  HealthGauge Band="3" (S-2), SELECTED recap (S-9), transport truth strip (S-4) — all views
+  carrying them deleted with the old page graph.
+- Page graph → og QStackedWidget model: Landing (PeripheralHomeView, default), Detail
+  (CDetailPage: scan+results unified), SdCard/MoreTools/FileRepair/LostPartition/ChronoSnap
+  (sidebar destinations), Health/Repair/Settings/About. Deleted: ScanConfig (og scans directly
+  from CTA), ScanProgress+Results (merged into Detail), Recovery+Completion (→ modal dialogs).
+- WizardState: Select/Scanning/Results/Recovering; navigation legal to sidebar pages during
+  Scanning (og runs scan app-level); frozen while Recovering (modal).
+- Tests updated to new semantics: 52 Core + 49 Integration green.
+
+### S3-T4 — landing page precise rebuild (IN PROGRESS at outage; work lost, restarted)
+
+- Tile-structure crop-VLM extraction completed pre-outage (digested into R-A PG-02 table).
+- Model expansion for capacity bar (used/total) — MultiEdit lost to the outage; restarted now.
+- OUTAGE LESSON (user-directed): push ASAP after every coherent unit; worklog entry BEFORE
+  moving to the next unit. Both commits above were stranded unpushed for the whole outage.
+
+Next: T4 landing page exact rebuild (capacity model → tiles → location trio → CTA → states),
+then T5/T6 Detail page scan/results states, T7 remaining slop + core wiring cross-check,
+T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity loop.
