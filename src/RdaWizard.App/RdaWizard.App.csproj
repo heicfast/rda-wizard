@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- RdaWizard.App — WPF entry point. Generic Host + DI + Serilog logging.
+       ViewModels live in Core (no WPF); views live here. -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>RdaWizard.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>RdaWizard</AssemblyName>
+    <!-- Per-monitor v2 DPI awareness; Win7-compatible fallback is per-monitor v1. -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdaWizard.Core\RdaWizard.Core.csproj" />
+    <ProjectReference Include="..\RdaWizard.Integration\RdaWizard.Integration.csproj" />
+    <ProjectReference Include="..\RdaWizard.Controls\RdaWizard.Controls.csproj" />
+    <ProjectReference Include="..\RdaWizard.Design\RdaWizard.Design.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Docnet.Core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Localization string tables -->
+    <None Include="strings\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

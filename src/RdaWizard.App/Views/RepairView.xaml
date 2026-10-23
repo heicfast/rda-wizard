@@ -1,0 +1,144 @@
+<UserControl x:Class="RdaWizard.App.Views.RepairView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1100">
+
+    <UserControl.Resources>
+        <app:Converters.BoolToVisibilityConverter x:Key="BoolToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+        <app:Converters.CountToVisibilityConverter x:Key="CountToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+        <app:Converters.NullToVisibilityConverter x:Key="NullToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+    </UserControl.Resources>
+
+    <!-- MAXIMUM GRAVITY surface: transactional repair writes to damaged media.
+         Dry-run by default; apply is double-gated (typed acknowledgment +
+         destructive confirm). -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Style="{DynamicResource Text.Title}" Text="Volume repair (RawFixer)" />
+            <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                       Text="This repairs damaged filesystem structures ON THE DISK ITSELF. It writes to the source media — a separate safety standard from recovery. An undo log is always written first."
+                       MaxWidth="{DynamicResource Coaching.MaxWidth}"
+                       Margin="0,8,0,0" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="{DynamicResource Content.MaxWidth}" HorizontalAlignment="Left">
+
+                <!-- Analyze -->
+                <Button Style="{DynamicResource Button.Primary}"
+                        Content="Analyze volume (writes nothing)"
+                        Command="{Binding AnalyzeCommand}"
+                        CommandParameter="{x:Null}"
+                        Margin="0,0,0,16" />
+
+                <!-- Analyzing state -->
+                <controls:StateSurface Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVisibility}}"
+                                       Glyph="&#xE945;"
+                                       Headline="Analyzing the volume…"
+                                       Detail="The engine is reading the filesystem structures and preparing a repair plan." />
+
+                <!-- Refused -->
+                <Border Padding="16"
+                        CornerRadius="{DynamicResource Radius.Card}"
+                        Background="{DynamicResource Brush.Status.WarningBg}"
+                        Visibility="{Binding Result.RefusalReason, Converter={StaticResource NullToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.Subtitle}"
+                                   Foreground="{DynamicResource Brush.Status.WarningText}"
+                                   Text="The engine refused to repair" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Status.WarningText}"
+                                   Text="{Binding Result.RefusalReason}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Plan -->
+                <Border Padding="16"
+                        CornerRadius="{DynamicResource Radius.Card}"
+                        Background="{DynamicResource Brush.Bg.Card}"
+                        BorderBrush="{DynamicResource Brush.Border.Default}"
+                        BorderThickness="1"
+                        Visibility="{Binding Result.Actions.Count, Converter={StaticResource CountToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.Subtitle}"
+                                   Text="Repair plan (dry-run — nothing written yet)" />
+                        <ItemsControl ItemsSource="{Binding Result.Actions}" Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10,6"
+                                            Margin="0,0,0,6"
+                                            CornerRadius="{DynamicResource Radius.Control}"
+                                            Background="{DynamicResource Brush.Bg.Surface}">
+                                        <StackPanel>
+                                            <TextBlock Style="{DynamicResource Text.CaptionMono}"
+                                                       Text="{Binding Kind}" />
+                                            <TextBlock Style="{DynamicResource Text.Caption}"
+                                                       Text="{Binding Reason}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Safety gate: typed acknowledgment -->
+                        <TextBlock Style="{DynamicResource Text.Body}"
+                                   FontWeight="SemiBold"
+                                   Text="Safety acknowledgment"
+                                   Margin="0,16,0,4" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Text="Type the word below to confirm you understand this writes to the damaged disk. An undo log will be saved; if the repair fails midway, verify the disk state before retrying."
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8" />
+                        <TextBox Width="240"
+                                 HorizontalAlignment="Left"
+                                 Text="{Binding AcknowledgmentText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Repair safety acknowledgment" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Text="type: repair"
+                                   Margin="0,4,0,12" />
+
+                        <Button Style="{DynamicResource Button.Danger}"
+                                Content="Apply repairs to the disk"
+                                Command="{Binding ApplyCommand}"
+                                IsEnabled="{Binding AcknowledgmentValid}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Applied result -->
+                <Border Padding="16"
+                        Margin="0,12,0,0"
+                        CornerRadius="{DynamicResource Radius.Card}"
+                        Background="{DynamicResource Brush.Status.SuccessBg}"
+                        Visibility="{Binding Result.SectorsWritten, Converter={StaticResource NullToVisibility}}">
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.Subtitle}"
+                                   Foreground="{DynamicResource Brush.Status.SuccessText}"
+                                   Text="Repair applied and verified" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Status.SuccessText}"
+                                   Text="{Binding Result.SectorsWritten, StringFormat={}{0} sector(s) written and verified}"
+                                   Margin="0,4,0,0" />
+                        <TextBlock Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Status.SuccessText}"
+                                   Text="{Binding Result.UndoLogPath, StringFormat=Undo log: {0}}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

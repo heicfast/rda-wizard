@@ -67,6 +67,22 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private PageKey _currentPage = PageKey.Home;
 
+    /// <summary>The ViewModel of the visible page — the shell binds its ContentControl here.</summary>
+    public ViewModelBase CurrentPageViewModel => CurrentPage switch
+    {
+        PageKey.Home => Home,
+        PageKey.ScanConfig => ScanConfig,
+        PageKey.ScanProgress => ScanProgress,
+        PageKey.Results => Results,
+        PageKey.Recovery => Recovery,
+        PageKey.Completion => Completion,
+        PageKey.Health => Health,
+        PageKey.Repair => Repair,
+        PageKey.Settings => Settings,
+        PageKey.About => About,
+        _ => Home,
+    };
+
     /// <summary>Current wizard state (drives the stepper + nav legality).</summary>
     public WizardState WizardState
     {
@@ -158,6 +174,7 @@ public partial class MainViewModel : ViewModelBase
         PostOnUi(() =>
         {
             CurrentPage = e.To;
+            OnPropertyChanged(nameof(CurrentPageViewModel));
             OnPropertyChanged(nameof(CanGoBack));
         });
     }

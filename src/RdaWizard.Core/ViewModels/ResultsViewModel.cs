@@ -38,6 +38,22 @@ public partial class ResultsViewModel : ViewModelBase
 
     private readonly HashSet<ResultNode> _selected = new();
 
+    /// <summary>Search text — applies the name filter as it changes (debounced by the view).</summary>
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    /// <summary>Tree node wrapper for hierarchical display (path tree).</summary>
+    public sealed record TreeNodeItem(ResultNode Node)
+    {
+        public string Name => Node.Name;
+        public string FullPath => Node.FullPath;
+        public List<TreeNodeItem> Children { get; } = new();
+    }
+
+    /// <summary>Path-tree roots for the left pane (directories at depth 0).</summary>
+    [ObservableProperty]
+    private IReadOnlyList<TreeNodeItem> _treeRoots = Array.Empty<TreeNodeItem>();
+
     /// <summary>Category pre-selection carried over from scan config (gap G-12: client-side).</summary>
     [ObservableProperty] private IReadOnlySet<FileCategory> _categoryChips = new HashSet<FileCategory>();
 
@@ -53,6 +69,7 @@ public partial class ResultsViewModel : ViewModelBase
     {
         Session = session;
         TotalFileCount = session.FileCount;
+        TreeRoots = BuildTreeRoots(session);
         CategoryChips = preselectedCategories ?? new HashSet<FileCategory>();
         Filter = CategoryChips.Count > 0
             ? Filter with { Categories = CategoryChips }
@@ -63,6 +80,35 @@ public partial class ResultsViewModel : ViewModelBase
         ErrorDiagnostic = null;
         _logger.LogInformation("Results installed: {Total} files, {Carved} carved, {Lost} lost-partition nodes",
             session.FileCount, session.CarvedNodes.Count, session.LostNodes.Count);
+    }
+
+    private static List<TreeNodeItem> BuildTreeRoots(LoadedSession session)
+    {
+        var byPath = new Dictionary<string, TreeNodeItem>(StringComparer.OrdinalIgnoreCase);
+        var roots = new List<TreeNodeItem>();
+
+        foreach (var node in session.Nodes)
+        {
+            var item = new TreeNodeItem(node);
+            byPath[node.FullPath] = item;
+
+            if (node.ParentPath is { } parentPath && byPath.TryGetValue(parentPath, out var parent))
+            {
+                parent.Children.Add(item);
+            }
+            else
+            {
+                roots.Add(item);
+            }
+        }
+
+        return roots;
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        Filter = Filter with { NameContains = string.IsNullOrWhiteSpace(value) ? null : value.Trim() };
+        ApplyFilter();
     }
 
     /// <summary>Applies the current filter to the snapshot (O(n), allocation-free predicates).</summary>

@@ -1,0 +1,17 @@
+<Application x:Class="RdaWizard.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Theme-independent geometry + type ramp -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Tokens.xaml" />
+                <!-- Base control styles (refer theme brushes via DynamicResource) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Controls.Base.xaml" />
+                <!-- Active theme (swapped at runtime by ThemeService) -->
+                <ResourceDictionary Source="pack://application:,,,/RdaWizard.Design;component/Themes/Theme.Light.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

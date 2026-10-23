@@ -1,0 +1,192 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:RdaWizard.Controls">
+
+    <!-- ============ WizardStepper default template ============ -->
+    <Style TargetType="{x:Type local:WizardStepper}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:WizardStepper}">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Step 1 -->
+                        <StackPanel x:Name="step1" Orientation="Horizontal">
+                            <Ellipse x:Name="dot1" Width="28" Height="28"
+                                     Fill="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                     Stroke="{DynamicResource Brush.Border.Strong}"
+                                     StrokeThickness="1.5" />
+                            <TextBlock Text="{TemplateBinding Step1Text}"
+                                       FontSize="{DynamicResource Font.Size.Body}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,16,0" />
+                        </StackPanel>
+                        <Rectangle x:Name="line1" Width="48" Height="2"
+                                   Fill="{DynamicResource Brush.Border.Hairline}"
+                                   VerticalAlignment="Center" Margin="0,0,16,0" />
+                        <!-- Step 2 -->
+                        <StackPanel x:Name="step2" Orientation="Horizontal">
+                            <Ellipse x:Name="dot2" Width="28" Height="28"
+                                     Fill="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                     Stroke="{DynamicResource Brush.Border.Strong}"
+                                     StrokeThickness="1.5" />
+                            <TextBlock Text="{TemplateBinding Step2Text}"
+                                       FontSize="{DynamicResource Font.Size.Body}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,16,0" />
+                        </StackPanel>
+                        <Rectangle x:Name="line2" Width="48" Height="2"
+                                   Fill="{DynamicResource Brush.Border.Hairline}"
+                                   VerticalAlignment="Center" Margin="0,0,16,0" />
+                        <!-- Step 3 -->
+                        <StackPanel x:Name="step3" Orientation="Horizontal">
+                            <Ellipse x:Name="dot3" Width="28" Height="28"
+                                     Fill="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                     Stroke="{DynamicResource Brush.Border.Strong}"
+                                     StrokeThickness="1.5" />
+                            <TextBlock Text="{TemplateBinding Step3Text}"
+                                       FontSize="{DynamicResource Font.Size.Body}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Step1State, RelativeSource={RelativeSource TemplatedParent}}" Value="Current">
+                            <Setter TargetName="dot1" Property="Fill" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter TargetName="dot1" Property="Stroke" Value="{DynamicResource Brush.Brand.Primary}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Step1State, RelativeSource={RelativeSource TemplatedParent}}" Value="Completed">
+                            <Setter TargetName="dot1" Property="Fill" Value="{DynamicResource Brush.Status.Success}" />
+                            <Setter TargetName="dot1" Property="Stroke" Value="{DynamicResource Brush.Status.Success}" />
+                            <Setter TargetName="line1" Property="Fill" Value="{DynamicResource Brush.Status.Success}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Step2State, RelativeSource={RelativeSource TemplatedParent}}" Value="Current">
+                            <Setter TargetName="dot2" Property="Fill" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter TargetName="dot2" Property="Stroke" Value="{DynamicResource Brush.Brand.Primary}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Step2State, RelativeSource={RelativeSource TemplatedParent}}" Value="Completed">
+                            <Setter TargetName="dot2" Property="Fill" Value="{DynamicResource Brush.Status.Success}" />
+                            <Setter TargetName="dot2" Property="Stroke" Value="{DynamicResource Brush.Status.Success}" />
+                            <Setter TargetName="line2" Property="Fill" Value="{DynamicResource Brush.Status.Success}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Step3State, RelativeSource={RelativeSource TemplatedParent}}" Value="Current">
+                            <Setter TargetName="dot3" Property="Fill" Value="{DynamicResource Brush.Brand.Primary}" />
+                            <Setter TargetName="dot3" Property="Stroke" Value="{DynamicResource Brush.Brand.Primary}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Step3State, RelativeSource={RelativeSource TemplatedParent}}" Value="Completed">
+                            <Setter TargetName="dot3" Property="Fill" Value="{DynamicResource Brush.Status.Success}" />
+                            <Setter TargetName="dot3" Property="Stroke" Value="{DynamicResource Brush.Status.Success}" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ ConfidenceBadge default template ============ -->
+    <Style TargetType="{x:Type local:ConfidenceBadge}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:ConfidenceBadge}">
+                    <Border x:Name="badge"
+                            Background="{DynamicResource Brush.Confidence.Unknown.Bg}"
+                            CornerRadius="{DynamicResource Radius.Badge}"
+                            Padding="8,2"
+                            ToolTip="{Binding Label, RelativeSource={RelativeSource TemplatedParent}}">
+                        <TextBlock x:Name="label"
+                                   Text="{Binding Label, RelativeSource={RelativeSource TemplatedParent}}"
+                                   FontSize="{DynamicResource Font.Size.Micro}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Confidence.Unknown.Fg}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Grade, RelativeSource={RelativeSource TemplatedParent}}" Value="1">
+                            <Setter TargetName="badge" Property="Background" Value="{DynamicResource Brush.Confidence.Excellent.Bg}" />
+                            <Setter TargetName="label" Property="Foreground" Value="{DynamicResource Brush.Confidence.Excellent.Fg}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Grade, RelativeSource={RelativeSource TemplatedParent}}" Value="2">
+                            <Setter TargetName="badge" Property="Background" Value="{DynamicResource Brush.Confidence.Partial.Bg}" />
+                            <Setter TargetName="label" Property="Foreground" Value="{DynamicResource Brush.Confidence.Partial.Fg}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Grade, RelativeSource={RelativeSource TemplatedParent}}" Value="3">
+                            <Setter TargetName="badge" Property="Background" Value="{DynamicResource Brush.Confidence.Overwritten.Bg}" />
+                            <Setter TargetName="label" Property="Foreground" Value="{DynamicResource Brush.Confidence.Overwritten.Fg}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Grade, RelativeSource={RelativeSource TemplatedParent}}" Value="4">
+                            <Setter TargetName="badge" Property="Background" Value="{DynamicResource Brush.Confidence.MetadataOnly.Bg}" />
+                            <Setter TargetName="label" Property="Foreground" Value="{DynamicResource Brush.Confidence.MetadataOnly.Fg}" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ HealthGauge default template ============ -->
+    <Style TargetType="{x:Type local:HealthGauge}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:HealthGauge}">
+                    <StackPanel>
+                        <Border Background="{DynamicResource Brush.Bg.SurfaceAlt}"
+                                CornerRadius="{DynamicResource Radius.Control}"
+                                Height="8">
+                            <Border x:Name="fill"
+                                    Background="{DynamicResource Brush.Health.Unknown}"
+                                    CornerRadius="{DynamicResource Radius.Control}"
+                                    Width="{TemplateBinding Width}"
+                                    HorizontalAlignment="Left" />
+                        </Border>
+                        <TextBlock Text="{TemplateBinding Caption}"
+                                   Style="{DynamicResource Text.Caption}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ StateSurface (empty/error) default template ============ -->
+    <Style TargetType="{x:Type local:StateSurface}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:StateSurface}">
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                MaxWidth="{DynamicResource Coaching.MaxWidth}">
+                        <TextBlock x:Name="glyph"
+                                   Text="{TemplateBinding Glyph}"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="48"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{TemplateBinding Headline}"
+                                   Style="{DynamicResource Text.Subtitle}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,16,0,0" />
+                        <TextBlock Text="{TemplateBinding Detail}"
+                                   Style="{DynamicResource Text.Caption}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Margin="0,8,0,0" />
+                        <ContentPresenter Margin="0,20,0,0" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsError" Value="True">
+                            <Setter TargetName="glyph" Property="Foreground" Value="{DynamicResource Brush.Status.Danger}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

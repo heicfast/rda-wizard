@@ -1,0 +1,114 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+      LIGHT theme — color tokens from docs/DESIGN-SYSTEM.md §2 token tables
+      (QSS census ground truth: brand #0560FD ×107, interaction #2978FF ×59,
+      text #1A1A1A ×158 / #616777 ×92; contrast-audited [ADAPTATION] variants).
+      Every key here has an exact counterpart in Theme.Dark.xaml — the App
+      swaps the merged dictionary for live theming; consumers reference keys
+      via DynamicResource only.
+    -->
+
+    <!-- ===== Brand ===== -->
+    <SolidColorBrush x:Key="Brush.Brand.Primary" Color="#0560FD" />
+    <SolidColorBrush x:Key="Brush.Brand.Hover" Color="#3D84FF" />
+    <SolidColorBrush x:Key="Brush.Brand.Pressed" Color="#004DD1" />
+    <SolidColorBrush x:Key="Brush.Brand.Deep" Color="#0448BE" />
+    <SolidColorBrush x:Key="Brush.Brand.Interaction" Color="#2978FF" />
+    <SolidColorBrush x:Key="Brush.Brand.LinkPressed" Color="#0F62F0" />
+    <SolidColorBrush x:Key="Brush.Brand.On" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Brand.Focus" Color="#0560FD" />
+
+    <LinearGradientBrush x:Key="Brush.Cta" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#0C99FF" Offset="0" />
+        <GradientStop Color="#0560FD" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="Brush.WindowHero" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#EFF5FF" Offset="0" />
+        <GradientStop Color="#DEEAFF" Offset="1" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Brush.BrandTint" Color="#1A0560FD" />
+    <SolidColorBrush x:Key="Brush.BrandTintStrong" Color="#330560FD" />
+
+    <!-- ===== Status ===== -->
+    <SolidColorBrush x:Key="Brush.Status.Success" Color="#30B373" />
+    <SolidColorBrush x:Key="Brush.Status.SuccessText" Color="#1E8A56" />
+    <SolidColorBrush x:Key="Brush.Status.SuccessBg" Color="#E6FFF3" />
+    <SolidColorBrush x:Key="Brush.Status.Warning" Color="#FFC10E" />
+    <SolidColorBrush x:Key="Brush.Status.WarningText" Color="#413B34" />
+    <SolidColorBrush x:Key="Brush.Status.WarningBg" Color="#FFF3D1" />
+    <SolidColorBrush x:Key="Brush.Status.WarningStrong" Color="#D4760B" />
+    <SolidColorBrush x:Key="Brush.Status.Danger" Color="#F72C2C" />
+    <SolidColorBrush x:Key="Brush.Status.DangerAlt" Color="#E74F4F" />
+    <SolidColorBrush x:Key="Brush.Status.DangerPressed" Color="#D23636" />
+    <SolidColorBrush x:Key="Brush.Status.DangerBg" Color="#FDD5D5" />
+    <SolidColorBrush x:Key="Brush.Status.DangerText" Color="#C21F1F" />
+    <SolidColorBrush x:Key="Brush.Status.Info" Color="#0560FD" />
+
+    <!-- ===== Backgrounds ===== -->
+    <SolidColorBrush x:Key="Brush.Bg.Window" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Bg.WindowEdge" Color="#E8F0FF" />
+    <SolidColorBrush x:Key="Brush.Bg.Canvas" Color="#F6F9FD" />
+    <SolidColorBrush x:Key="Brush.Bg.Surface" Color="#F0F2F6" />
+    <SolidColorBrush x:Key="Brush.Bg.SurfaceAlt" Color="#E9EDF4" />
+    <SolidColorBrush x:Key="Brush.Bg.Card" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Bg.CardHover" Color="#F2F7FF" />
+    <SolidColorBrush x:Key="Brush.Bg.Elevated" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Bg.Overlay" Color="#66000000" />
+    <SolidColorBrush x:Key="Brush.Bg.Sidebar" Color="#E5EEFB" />
+    <SolidColorBrush x:Key="Brush.Bg.SearchStrip" Color="#ECF4FF" />
+    <SolidColorBrush x:Key="Brush.Bg.Tooltip" Color="#E60560FD" />
+    <SolidColorBrush x:Key="Brush.Bg.SelectedRow" Color="#1A0560FD" />
+
+    <!-- ===== Text ===== -->
+    <SolidColorBrush x:Key="Brush.Text.Primary" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="Brush.Text.Secondary" Color="#616777" />
+    <SolidColorBrush x:Key="Brush.Text.Tertiary" Color="#8794B3" />
+    <SolidColorBrush x:Key="Brush.Text.Disabled" Color="#A0A6B1" />
+    <SolidColorBrush x:Key="Brush.Text.OnAccent" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Text.Link" Color="#2978FF" />
+    <SolidColorBrush x:Key="Brush.Text.LinkPressed" Color="#0F62F0" />
+    <SolidColorBrush x:Key="Brush.Text.Inverse" Color="#FFFFFF" />
+
+    <!-- ===== Borders ===== -->
+    <SolidColorBrush x:Key="Brush.Border.Hairline" Color="#DFE6ED" />
+    <SolidColorBrush x:Key="Brush.Border.Default" Color="#E7E7E7" />
+    <SolidColorBrush x:Key="Brush.Border.Strong" Color="#C1CCDF" />
+    <SolidColorBrush x:Key="Brush.Border.Selected" Color="#0560FD" />
+    <SolidColorBrush x:Key="Brush.Border.Focus" Color="#0560FD" />
+    <SolidColorBrush x:Key="Brush.Border.Glass" Color="#590560FD" />
+    <SolidColorBrush x:Key="Brush.Border.Danger" Color="#F72C2C" />
+
+    <!-- ===== Confidence badges (fill/foreground per grade) ===== -->
+    <SolidColorBrush x:Key="Brush.Confidence.Excellent.Bg" Color="#E6FFF3" />
+    <SolidColorBrush x:Key="Brush.Confidence.Excellent.Fg" Color="#1E8A56" />
+    <SolidColorBrush x:Key="Brush.Confidence.Partial.Bg" Color="#FFF3D1" />
+    <SolidColorBrush x:Key="Brush.Confidence.Partial.Fg" Color="#8A5A00" />
+    <SolidColorBrush x:Key="Brush.Confidence.Overwritten.Bg" Color="#FDD5D5" />
+    <SolidColorBrush x:Key="Brush.Confidence.Overwritten.Fg" Color="#C21F1F" />
+    <SolidColorBrush x:Key="Brush.Confidence.MetadataOnly.Bg" Color="#E9EDF5" />
+    <SolidColorBrush x:Key="Brush.Confidence.MetadataOnly.Fg" Color="#616777" />
+    <SolidColorBrush x:Key="Brush.Confidence.Unknown.Bg" Color="#E9EDF5" />
+    <SolidColorBrush x:Key="Brush.Confidence.Unknown.Fg" Color="#8794B3" />
+
+    <!-- ===== Health gauge bands ===== -->
+    <SolidColorBrush x:Key="Brush.Health.Good" Color="#30B373" />
+    <SolidColorBrush x:Key="Brush.Health.Caution" Color="#FFC10E" />
+    <SolidColorBrush x:Key="Brush.Health.Bad" Color="#F72C2C" />
+    <SolidColorBrush x:Key="Brush.Health.Unknown" Color="#A0A6B1" />
+
+    <!-- ===== Elevation shadows (DropShadowEffects) ===== -->
+    <DropShadowEffect x:Key="Effect.Elevation.Card" BlurRadius="8" ShadowDepth="2" Direction="270"
+                      Opacity="0.08" Color="#04052B" />
+    <DropShadowEffect x:Key="Effect.Elevation.CardHover" BlurRadius="12" ShadowDepth="4" Direction="270"
+                      Opacity="0.12" Color="#04052B" />
+    <DropShadowEffect x:Key="Effect.Elevation.Flyout" BlurRadius="24" ShadowDepth="8" Direction="270"
+                      Opacity="0.16" Color="#04052B" />
+    <DropShadowEffect x:Key="Effect.Elevation.Dialog" BlurRadius="48" ShadowDepth="16" Direction="270"
+                      Opacity="0.24" Color="#04052B" />
+    <DropShadowEffect x:Key="Effect.Elevation.Window" BlurRadius="60" ShadowDepth="20" Direction="270"
+                      Opacity="0.30" Color="#04052B" />
+
+</ResourceDictionary>

@@ -1,0 +1,94 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  Configuration: Release
+
+jobs:
+  # Pure-managed projects: build + unit/contract tests on Linux too (fast feedback).
+  managed:
+    name: managed (linux-fast)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build managed projects
+        run: dotnet build src/RdaWizard.Core/RdaWizard.Core.csproj -c ${{ env.Configuration }} && dotnet build src/RdaWizard.Integration/RdaWizard.Integration.csproj -c ${{ env.Configuration }}
+
+      - name: Unit tests (Core)
+        run: dotnet test tests/RdaWizard.Core.Tests/RdaWizard.Core.Tests.csproj -c ${{ env.Configuration }} --logger trx --results-directory ./TestResults
+
+      - name: Contract tests (Integration, parsers)
+        run: dotnet test tests/RdaWizard.Integration.Tests/RdaWizard.Integration.Tests.csproj -c ${{ env.Configuration }} --logger trx --results-directory ./TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-managed-${{ github.run_id }}
+          path: ./TestResults
+          retention-days: 7
+
+  # Full WPF solution on Windows matrix (the authoritative build).
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, windows-2022 ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore RdaWizard.sln
+
+      - name: Build (Release, warnings-as-errors on product code)
+        run: dotnet build RdaWizard.sln -c ${{ env.Configuration }} --no-restore
+
+      - name: Unit tests (Core)
+        run: dotnet test tests/RdaWizard.Core.Tests/RdaWizard.Core.Tests.csproj -c ${{ env.Configuration }} --no-build --logger trx --results-directory ./TestResults/win-${{ matrix.os }}
+
+      - name: Contract tests (Integration)
+        run: dotnet test tests/RdaWizard.Integration.Tests/RdaWizard.Integration.Tests.csproj -c ${{ env.Configuration }} --no-build --logger trx --results-directory ./TestResults/win-${{ matrix.os }}
+
+      - name: dotnet format check (analyzers/style)
+        run: dotnet format RdaWizard.sln --verify-no-changes --no-restore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-${{ matrix.os }}-${{ github.run_id }}
+          path: ./TestResults
+          retention-days: 7
+
+      - name: Publish portable build (framework-dependent x64)
+        if: matrix.os == 'windows-latest'
+        run: dotnet publish src/RdaWizard.App/RdaWizard.App.csproj -c ${{ env.Configuration }} -r win-x64 --self-contained false -o ./publish
+
+      - name: Upload portable artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rda-wizard-portable-${{ github.sha }}
+          path: ./publish
+          retention-days: 14

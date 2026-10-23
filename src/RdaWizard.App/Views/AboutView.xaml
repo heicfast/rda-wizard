@@ -1,0 +1,77 @@
+<UserControl x:Class="RdaWizard.App.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1100">
+
+    <UserControl.Resources>
+        <app:Converters.NullToVisibilityConverter x:Key="NullToVisibility" xmlns:app="clr-namespace:RdaWizard.App" />
+    </UserControl.Resources>
+
+    <Grid VerticalAlignment="Top"
+          MaxWidth="{DynamicResource Content.MaxWidth}"
+          HorizontalAlignment="Left">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Style="{DynamicResource Text.Display}" Text="RDA Data Recovery Wizard" />
+            <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                       Text="{Binding ProductVersion, StringFormat=Version {0}}"
+                       Margin="0,8,0,0" />
+        </StackPanel>
+
+        <!-- Engine + driver status (the truthful stack) -->
+        <Border Grid.Row="1"
+                Padding="16"
+                CornerRadius="{DynamicResource Radius.Card}"
+                Background="{DynamicResource Brush.Bg.Card}"
+                BorderBrush="{DynamicResource Brush.Border.Default}"
+                BorderThickness="1">
+            <StackPanel>
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Engine status" Margin="0,0,0,12" />
+                <UniformGrid Columns="2">
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.Caption}" Text="RECOVERY ENGINE" />
+                        <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
+                                   Text="{Binding Engine.Version, TargetNullValue=checking…}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Style="{DynamicResource Text.Caption}" Text="RDA DRIVER" />
+                        <TextBlock Style="{DynamicResource Text.Body}" FontWeight="SemiBold"
+                                   Text="{Binding Driver.TransportLabel, TargetNullValue=checking…}" />
+                    </StackPanel>
+                </UniformGrid>
+                <TextBlock Style="{DynamicResource Text.Caption}"
+                           Text="When the RDA driver is unavailable the engine falls back to direct disk access — weaker for locked volumes and damaged media, identical results otherwise. Both paths need the same user rights."
+                           TextWrapping="Wrap"
+                           Margin="0,12,0,0" />
+                <Button Content="Open-source licenses"
+                        Height="{DynamicResource Height.XS}"
+                        Padding="12,4"
+                        HorizontalAlignment="Left"
+                        Margin="0,12,0,0"
+                        Command="{Binding ShowLicensesCommand}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Filesystem support (truthful capability claims — ReFS first-class per scope correction) -->
+        <Border Grid.Row="2"
+                Margin="0,16,0,0"
+                Padding="16"
+                CornerRadius="{DynamicResource Radius.Card}"
+                Background="{DynamicResource Brush.Bg.Surface}">
+            <StackPanel>
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Filesystems this build can recover from" Margin="0,0,0,8" />
+                <TextBlock Style="{DynamicResource Text.BodySecondary}"
+                           Text="NTFS · FAT12/16/32 · exFAT · ext4 · HFS+ · Btrfs · ZFS (single-vdev pools) · ReFS · lost partitions · LDM/dynamic disks (spanned/striped/mirrored/RAID-5) · raw signature carving (139 formats)"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

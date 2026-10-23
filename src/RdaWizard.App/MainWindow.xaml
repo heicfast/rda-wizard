@@ -1,0 +1,134 @@
+<Window x:Class="RdaWizard.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+        xmlns:vm="clr-namespace:RdaWizard.Core.ViewModels;assembly=RdaWizard.Core"
+        xmlns:app="clr-namespace:RdaWizard.App"
+        Title="RDA Data Recovery Wizard"
+        Width="{DynamicResource Window.DefaultWidth}"
+        Height="{DynamicResource Window.DefaultHeight}"
+        MinWidth="{DynamicResource Window.MinWidth}"
+        MinHeight="{DynamicResource Window.MinHeight}"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="{DynamicResource Brush.Bg.Canvas}"
+        TextOptions.TextFormattingMode="Ideal"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+    <Window.Resources>
+        <!-- Page ViewModels map to Views (typed DataTemplates). -->
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+            <app:Views.HomeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ScanConfigViewModel}">
+            <app:Views.ScanConfigView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ScanProgressViewModel}">
+            <app:Views.ScanProgressView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ResultsViewModel}">
+            <app:Views.ResultsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RecoveryViewModel}">
+            <app:Views.RecoveryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CompletionViewModel}">
+            <app:Views.CompletionView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HealthViewModel}">
+            <app:Views.HealthView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RepairViewModel}">
+            <app:Views.RepairView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <app:Views.SettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+            <app:Views.AboutView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- ===== Top bar: brand + stepper + aux navigation ===== -->
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                BorderThickness="0,0,0,1"
+                Padding="24,10,24,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="RDA"
+                               FontFamily="{DynamicResource Font.Family}"
+                               FontSize="{DynamicResource Font.Size.Subtitle}"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource Brush.Brand.Primary}"
+                               Margin="0,0,6,0" />
+                    <TextBlock Text="Data Recovery Wizard"
+                               FontFamily="{DynamicResource Font.Family}"
+                               FontSize="{DynamicResource Font.Size.Subtitle}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource Brush.Text.Primary}" />
+                </StackPanel>
+                <controls:WizardStepper Grid.Column="1"
+                                        HorizontalAlignment="Center"
+                                        CurrentStep="{Binding StepIndex, Mode=OneWay}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="SettingsButton"
+                            Content="Settings"
+                            Style="{DynamicResource {x:Type Button}}"
+                            Height="{DynamicResource Height.XS}"
+                            Padding="12,4"
+                            Margin="0,0,8,0"
+                            Click="OnSettingsClick" />
+                    <Button x:Name="AboutButton"
+                            Content="About"
+                            Style="{DynamicResource {x:Type Button}}"
+                            Height="{DynamicResource Height.XS}"
+                            Padding="12,4"
+                            Click="OnAboutClick" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Bottom status bar: driver + engine truth ===== -->
+        <Border DockPanel.Dock="Bottom"
+                Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                BorderThickness="0,1,0,0"
+                Padding="24,8,24,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Style="{DynamicResource Text.Caption}"
+                           Text="{Binding Home.Driver.TransportLabel, Mode=OneWay}"
+                           VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8"
+                             Fill="{DynamicResource Brush.Health.Good}"
+                             Margin="0,0,6,0"
+                             VerticalAlignment="Center" />
+                    <TextBlock Style="{DynamicResource Text.Caption}"
+                               VerticalAlignment="Center">
+                        <Run Text="Ready" />
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Page region ===== -->
+        <Border Background="{DynamicResource Brush.Bg.Canvas}"
+                Padding="{DynamicResource Space.Page}">
+            <ContentControl Content="{Binding CurrentPageViewModel, Mode=OneWay}" />
+        </Border>
+    </DockPanel>
+</Window>

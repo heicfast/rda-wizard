@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- RdaWizard.Controls — recovery-specific custom controls:
+       WizardStepper, DriveCard, ConfidenceBadge, HealthGauge, EmptyState,
+       ErrorState, plus behaviors (virtualization support). -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>RdaWizard.Controls</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdaWizard.Design\RdaWizard.Design.csproj" />
+  </ItemGroup>
+
+</Project>

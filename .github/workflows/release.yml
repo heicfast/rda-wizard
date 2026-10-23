@@ -1,0 +1,68 @@
+name: release
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build + test (Release)
+        run: |
+          dotnet build RdaWizard.sln -c Release
+          dotnet test tests/RdaWizard.Core.Tests/RdaWizard.Core.Tests.csproj -c Release --no-build
+          dotnet test tests/RdaWizard.Integration.Tests/RdaWizard.Integration.Tests.csproj -c Release --no-build
+
+      - name: Publish portable (framework-dependent x64)
+        run: dotnet publish src/RdaWizard.App/RdaWizard.App.csproj -c Release -r win-x64 --self-contained false -o ./dist/portable
+
+      - name: Publish self-contained x64
+        run: dotnet publish src/RdaWizard.App/RdaWizard.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o ./dist/selfcontained
+
+      - name: Zip artifacts
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ./dist/portable/* -DestinationPath ./dist/rda-wizard-portable-win-x64.zip
+          Compress-Archive -Path ./dist/selfcontained/* -DestinationPath ./dist/rda-wizard-selfcontained-win-x64.zip
+
+      - name: Generate SHA256SUMS
+        shell: pwsh
+        run: |
+          Get-ChildItem ./dist/*.zip | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+            "$hash  $($_.Name)" | Add-Content ./dist/SHA256SUMS
+          }
+          Get-Content ./dist/SHA256SUMS
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rda-wizard-${{ github.ref_name }}
+          path: |
+            ./dist/*.zip
+            ./dist/SHA256SUMS
+          retention-days: 90
+
+      - name: Create GitHub release (unsigned — signing disabled by policy)
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            ./dist/*.zip
+            ./dist/SHA256SUMS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

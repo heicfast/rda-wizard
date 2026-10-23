@@ -1,0 +1,80 @@
+<UserControl x:Class="RdaWizard.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1100">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Style="{DynamicResource Text.Title}" Text="Settings" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="{DynamicResource Content.MaxWidth}" HorizontalAlignment="Left">
+
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Appearance" Margin="0,0,0,12" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Theme" Margin="0,0,0,4" />
+                <ComboBox Width="200"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding ThemeOptions}"
+                          SelectedItem="{Binding Theme}" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Language" Margin="0,12,0,4" />
+                <ComboBox Width="200"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding LanguageOptions}"
+                          SelectedItem="{Binding Language}" />
+
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Recovery defaults" Margin="0,24,0,12" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Default scan mode" Margin="0,0,0,4" />
+                <ComboBox Width="200"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding ScanModeOptions}"
+                          SelectedItem="{Binding DefaultScanMode}" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Default recovery destination" Margin="0,12,0,4" />
+                <TextBox Width="360"
+                         HorizontalAlignment="Left"
+                         Text="{Binding DefaultRecoveryDestination, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Empty = ask each time" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Name collision policy" Margin="0,12,0,4" />
+                <ComboBox Width="200"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding CollisionOptions}"
+                          SelectedItem="{Binding CollisionPolicy}" />
+
+                <TextBlock Style="{DynamicResource Text.Subtitle}" Text="Diagnostics" Margin="0,24,0,12" />
+                <TextBlock Style="{DynamicResource Text.Body}" Text="Log level" Margin="0,0,0,4" />
+                <ComboBox Width="200"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding LogLevelOptions}"
+                          SelectedItem="{Binding LogLevel}" />
+                <TextBlock Style="{DynamicResource Text.Caption}"
+                           Text="Logs live under %LOCALAPPDATA%\RdaWizard\logs (one file per day, 14 days kept). No telemetry exists in this application."
+                           TextWrapping="Wrap"
+                           Margin="0,8,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Margin="0,16,0,0"
+                Padding="16"
+                CornerRadius="{DynamicResource Radius.Card}"
+                Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                BorderThickness="0,1,0,0"
+                HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Save settings"
+                        Style="{DynamicResource Button.Primary}"
+                        Command="{Binding SaveCommand}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
