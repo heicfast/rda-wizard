@@ -76,6 +76,17 @@ public sealed class BoolToVisibilityConverter : IValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>Null → bool inversion: non-null = true (enables controls gated
+/// on an optional object being present, e.g. Recover All with a session).</summary>
+public sealed class NullToBoolConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is not null;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 /// <summary>Equality → Visibility: value equals parameter (string) → Visible.</summary>
 public sealed class EqualityToVisibilityConverter : IValueConverter
 {
