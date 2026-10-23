@@ -66,6 +66,7 @@ public class SettingsServiceTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
             if (Directory.Exists(_root))
