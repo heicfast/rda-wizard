@@ -451,3 +451,21 @@ Structural restructure per R-A §1/§3 (03-window-class-map, 34-navigatebar, atl
 Next: T4 landing page exact rebuild (capacity model → tiles → location trio → CTA → states),
 then T5/T6 Detail page scan/results states, T7 remaining slop + core wiring cross-check,
 T8 OG dialog family, T9 sidebar pages, T10 zero-warning cleanup + final parity loop.
+
+### S3-T4 — landing page og-exact rebuild (commit ff9f1a2)
+
+- VolumeInfo.UsedBytes + TileName; ScanTarget Folder kind (og PushFolderFilter
+  semantics: volume scan + client-side path scoping); EnrichWithCapacity pass
+  (DriveInfo = og WMI equivalent) in DeviceEnumerationService.
+- LandingViewModel: Internal/External tile groups, og single-selection, trio
+  (Recycle Bin/Desktop/Select Folder) as folder targets, CTA 'Search for Lost
+  Data' / 'Return to scan' while scanning (ReturnToScanRequested wired).
+- LandingView: og layout per crop-VLM re-extraction (compact vs selected-
+  expanded tiles w/ blue border + check badge + capacity bar; bare trio items;
+  divider bottom bar + link + 200x36 CTA); loading/failure/no-devices states;
+  P41 banner. 12 new tests; 64+49 green.
+- OUTAGE RECOVERY NOTE: the focused crop-VLM extraction was lost with the
+  outage (analysis.md had empty headers); re-ran per-crop targeted prompts +
+  band verification crops (drives-band/trio-band/content-lower) to resolve the
+  tile asymmetry (selected = expanded state) and the trio arrangement (bare
+  icon+label, wrapped, no card chrome).
