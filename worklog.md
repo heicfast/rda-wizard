@@ -256,3 +256,42 @@ the engine has always printed it unbracketed. See F-C-1 below.
   PARITY-W1/W2): FAT12 sentinels, NTFS viability probe, fixup
   first-2-tails, HFS+ layout, NVMe offsets, carve double-count,
   undo-apply guard, CI unblock. Suite 159/159 green.
+---
+
+## Session 2 — Visual Design & Component System agent (2026-10-23)
+
+### VD-T1 — bootstrap + environment unlock
+
+- Role: visual design & component system agent. Mandate saved verbatim (token redacted) at
+  `worklog/session-visual-design-prompt.md`.
+- Pins at session start: rda-wizard `042e081`, core_recovery `5eaddab`, rda-driver `7e88e38`
+  (v0.2.1), easeus-drw-research `18d6f14`.
+- **Environment unlock**: .NET SDK 10.0.402 installed at /home/z/.dotnet; **WPF projects now
+  COMPILE on Linux via `-p:EnableWindowsTargeting=true`** (full solution builds clean, 18.8s).
+  Session-1's "Windows-CI-only compile truth" no longer holds for compile validation — runtime
+  /FlaUI/screenshots remain Windows-only. This session compiles every XAML locally before push.
+- Read line-by-line: UI-MAP.md (992L), DESIGN-SYSTEM.md (889L), worklog.md, atlas A35, A05
+  styling/theming, A21 QSS census, themdark.ini 118 slots (both themes), style.css button
+  system (L602-940) + DiskScanButton + tooltip/scrollbar/menu/tree specs + splash/title specs.
+
+### VD-T2..T6 — evidence extraction + gate docs (committed as this unit)
+
+- **VD-A complete**: all 63 corpus screenshots VLM-extracted (fixed template, 0 parse errors,
+  resumable NDJSON). Aggregate: VLM re-derives 20+ core tokens within antialiasing noise;
+  radius histogram r4/r6/r8/r12/r20 matches QSS 1:1; shadow ladder 8/12/24/30 confirmed;
+  systematic VLM drift explained by CTA gradient mid-tones (honor stops, not samples).
+- **VD-B complete**: QSS-EVIDENCE.md — full 118-slot dual palette mapped to tokens, verbatim
+  button system (7 variants w/ exact gradients + states), typography table with QSS lines,
+  geometry register, chrome components, complete gradient inventory.
+- **New gate docs**: docs/VISUAL-EVIDENCE.md (1,117L: manifest, aggregate, 63 per-shot
+  extractions, 15 cross-validation verdicts V-01..V-15, ambiguity register),
+  docs/QSS-EVIDENCE.md, docs/VISUAL-SPEC.md (authoritative parameter spec: token register,
+  per-screen specs for our 10 pages + dialogs, 60-component inventory + state matrix,
+  acceptance envelope with numeric tolerances, ESTIMATED register).
+- Design decisions (recorded in VISUAL-SPEC): existing token key-names preserved (no renames,
+  main agent's consumers unaffected); only additive changes; HC theme as third full parity
+  dictionary; tokens.json becomes machine SoT with byte-stable CI generation check.
+
+Next (T7+): design/tokens.json + generator → XAML (light/dark/HC) + Metrics.cs; then the
+component waves, icons, motion, comps, gallery, a11y/DPI/l10n evidence, acceptance grid,
+tag v0.1.0-design.
