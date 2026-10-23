@@ -9,14 +9,14 @@
       extracted from the DRW QSS census, [ADAPTATION] markers included).
     -->
 
-    <!-- ===== Spacing (4px base grid) ===== -->
-    <sys:Double x:Key="Space.XS">4</sys:Double>
-    <sys:Double x:Key="Space.S">8</sys:Double>
-    <sys:Double x:Key="Space.M">12</sys:Double>
-    <sys:Double x:Key="Space.L">16</sys:Double>
-    <sys:Double x:Key="Space.XL">24</sys:Double>
-    <sys:Double x:Key="Space.XXL">32</sys:Double>
-    <sys:Double x:Key="Space.Page">48</sys:Double>
+    <!-- ===== Spacing (4px base grid) — Thickness so Padding/Margin consume them directly ===== -->
+    <Thickness x:Key="Space.XS">4</Thickness>
+    <Thickness x:Key="Space.S">8</Thickness>
+    <Thickness x:Key="Space.M">12</Thickness>
+    <Thickness x:Key="Space.L">16</Thickness>
+    <Thickness x:Key="Space.XL">24</Thickness>
+    <Thickness x:Key="Space.XXL">32</Thickness>
+    <Thickness x:Key="Space.Page">48</Thickness>
 
     <!-- ===== Control heights ===== -->
     <sys:Double x:Key="Height.XS">32</sys:Double>
