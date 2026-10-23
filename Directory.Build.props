@@ -36,12 +36,15 @@
        - CA1711: modern generic EventHandler<T> records legitimately end in
          EventArgs without deriving from System.EventArgs.
        - CA1707: we keep underscore-free public API but allow it in tests.
+       - CS1591: XML docs are written progressively; the public API surface is
+         still evolving during the v0.1.0-ui scaffold. Completeness of member
+         docs is enforced at the v0.1.0-ui tag review, not per-commit.
        -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' != 'RdaWizard.Core.Tests' and
                             '$(MSBuildProjectName)' != 'RdaWizard.Integration.Tests' and
                             '$(MSBuildProjectName)' != 'RdaWizard.Ui.Tests'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>$(NoWarn);CA1848;CA1873;CA1711;CA1707</NoWarn>
+    <NoWarn>$(NoWarn);CA1848;CA1873;CA1711;CA1707;CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>

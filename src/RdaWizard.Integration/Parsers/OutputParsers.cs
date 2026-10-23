@@ -124,7 +124,7 @@ public static partial class ScanOutputParser
 
         try
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(line.AsSpan(start, end - start + 1));
+            using var doc = System.Text.Json.JsonDocument.Parse(line.Substring(start, end - start + 1));
             var root = doc.RootElement;
             summary = summary with
             {

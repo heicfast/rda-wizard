@@ -50,11 +50,11 @@ public sealed class SessionService : ISessionService
             keepLine: static line => line.StartsWith("session:", StringComparison.Ordinal) ||
                                      line.StartsWith("cannot open session", StringComparison.Ordinal) ||
                                      line.StartsWith("session load failed", StringComparison.Ordinal),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (run.ExitCode != 0)
         {
-            var diagnostic = run.KeptLines.FirstOrDefault()
+            var diagnostic = (run.KeptLines.Count > 0 ? run.KeptLines[0] : null)
                 ?? (run.ExitCode == 1 ? "The engine rejected the session file (corrupt or incompatible)." : $"The engine exited with code {run.ExitCode}.");
             _logger.LogWarning("Session load failed: {Path}: {Diagnostic}", sessionPath, diagnostic);
             return new SessionLoadResult { Success = false, Diagnostic = diagnostic, Session = null };
@@ -197,7 +197,7 @@ public sealed class RecoveryService : IRecoveryService
                                      line.StartsWith("recovery failed", StringComparison.Ordinal) ||
                                      line.StartsWith("[F12]", StringComparison.Ordinal) ||
                                      line.StartsWith("[dest]", StringComparison.Ordinal),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (run.WasCancelled)
         {
@@ -212,7 +212,7 @@ public sealed class RecoveryService : IRecoveryService
             };
         }
 
-        var failureLine = run.KeptLines.FirstOrDefault(l => l.StartsWith("recovery failed", StringComparison.Ordinal));
+        var failureLine = FindFirst(run.KeptLines, static l => l.StartsWith("recovery failed", StringComparison.Ordinal));
         if (run.ExitCode == 1 || failureLine is not null)
         {
             throw new InvalidOperationException(failureLine ?? $"Recovery setup failed (engine exit {run.ExitCode}).");
@@ -262,26 +262,36 @@ public sealed class RecoveryService : IRecoveryService
 
     internal static string BuildReport(RecoverySummary summary, RecoveryRequest request)
     {
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
         var builder = new System.Text.StringBuilder(1024);
         builder.AppendLine("RDA Recovery Report");
         builder.AppendLine("===================");
-        builder.AppendLine($"Generated (UTC):  {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}");
-        builder.AppendLine($"Session:          {request.SessionPath}");
-        builder.AppendLine($"Source disk:      {request.SourceDiskIndex}");
-        builder.AppendLine($"Destination:      {request.DestinationDirectory}");
+        builder.AppendLine(culture, $"Generated (UTC):  {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}");
+        builder.AppendLine(culture, $"Session:          {request.SessionPath}");
+        builder.AppendLine(culture, $"Source disk:      {request.SourceDiskIndex}");
+        builder.AppendLine(culture, $"Destination:      {request.DestinationDirectory}");
         builder.AppendLine();
-        builder.AppendLine($"Outcome:          {summary.Outcome}");
-        builder.AppendLine($"Recovered:        {summary.Recovered}");
-        builder.AppendLine($"Refused:          {summary.Refused}  (destination safety refusals)");
-        builder.AppendLine($"Errors:           {summary.Errors}");
-        builder.AppendLine($"Hash mismatches:  {summary.HashMismatch}");
-        builder.AppendLine($"Elapsed:          {summary.Elapsed:hh\\:mm\\:ss}");
+        builder.AppendLine(culture, $"Outcome:          {summary.Outcome}");
+        builder.AppendLine(culture, $"Recovered:        {summary.Recovered}");
+        builder.AppendLine(culture, $"Refused:          {summary.Refused}  (destination safety refusals)");
+        builder.AppendLine(culture, $"Errors:           {summary.Errors}");
+        builder.AppendLine(culture, $"Hash mismatches:  {summary.HashMismatch}");
+        builder.AppendLine(culture, $"Elapsed:          {summary.Elapsed:hh\\:mm\\:ss}");
         builder.AppendLine();
         builder.AppendLine("Notes:");
         builder.AppendLine("- Structured (non-carved) files carry no stored hash; verification is hash-less for them (engine gap G-22).");
         builder.AppendLine("- Empty folders are not reconstructed (engine gap G-08).");
         builder.AppendLine("- 'Refused' items were blocked because the destination overlapped the source (safety gate).");
         return builder.ToString();
+    }
+
+    private static string? FindFirst(IReadOnlyList<string> lines, Func<string, bool> predicate)
+    {
+        foreach (var line in lines)
+        {
+            if (predicate(line)) return line;
+        }
+        return null;
     }
 
     private static string ResolvePathRoot(string path)
@@ -360,11 +370,11 @@ public sealed class HealthService : IHealthService
         var run = await _engine.RunAsync(
             ["health", "--disk", diskIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)],
             keepLine: static _ => true,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (run.ExitCode != 0)
         {
-            var diagnostic = run.HeadLines.FirstOrDefault()?.Trim()
+            var diagnostic = (run.HeadLines.Count > 0 ? run.HeadLines[0].Trim() : null)
                 ?? $"The engine could not read disk {diskIndex} health (exit {run.ExitCode}).";
             throw new InvalidOperationException(diagnostic);
         }
@@ -383,14 +393,14 @@ public sealed class RepairService : IRepairService
     public async Task<RepairResult> AnalyzeAsync(int diskIndex, int? partitionIndex, CancellationToken cancellationToken = default)
     {
         var args = BuildArgs(diskIndex, partitionIndex, apply: false, undoPath: null);
-        var run = await _engine.RunAsync(args, keepLine: static _ => true, cancellationToken).ConfigureAwait(false);
+        var run = await _engine.RunAsync(args, keepLine: static _ => true, cancellationToken: cancellationToken).ConfigureAwait(false);
         return FixOutputParser.Parse(run.KeptLines);
     }
 
     public async Task<RepairResult> ApplyAsync(int diskIndex, int? partitionIndex, string undoLogPath, CancellationToken cancellationToken = default)
     {
         var args = BuildArgs(diskIndex, partitionIndex, apply: true, undoPath: undoLogPath);
-        var run = await _engine.RunAsync(args, keepLine: static _ => true, cancellationToken).ConfigureAwait(false);
+        var run = await _engine.RunAsync(args, keepLine: static _ => true, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (run.ExitCode == 2)
         {
             throw new InvalidOperationException(
@@ -402,7 +412,7 @@ public sealed class RepairService : IRepairService
 
     public async Task<RepairResult> UndoAsync(string undoLogPath, CancellationToken cancellationToken = default)
     {
-        var run = await _engine.RunAsync(["fix", "--undo-apply", undoLogPath], keepLine: static _ => true, cancellationToken).ConfigureAwait(false);
+        var run = await _engine.RunAsync(["fix", "--undo-apply", undoLogPath], keepLine: static _ => true, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (run.ExitCode != 0)
         {
             throw new InvalidOperationException(run.TailText + " — verify the disk state!");

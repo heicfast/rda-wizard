@@ -9,8 +9,10 @@
     <RootNamespace>RdaWizard.Integration</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- P/Invoke surfaces are Windows-only at runtime; the code compiles
-         everywhere and guards execution. -->
-    <SupportedPlatform Include="windows" />
+         everywhere and guards execution with OperatingSystem.IsWindows(). -->
+    <SupportedPlatforms>windows</SupportedPlatforms>
+    <!-- LibraryImport source-generated P/Invoke requires unsafe blocks. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

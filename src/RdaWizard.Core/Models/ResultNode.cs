@@ -81,8 +81,8 @@ public enum DeletedState
 
 /// <summary>
 /// Confidence grades the engine emits (numeric u32 in CSV: 0..4).
-/// Labels are honest to users; the engine's exact wording is preserved in
-/// <see cref="EngineLabel"/>. The UI never re-grades.
+/// Labels are honest to users; the engine's exact wording is preserved via
+/// <see cref="ConfidenceGradeExtensions.EngineLabel"/>. The UI never re-grades.
 /// </summary>
 public enum ConfidenceGrade
 {

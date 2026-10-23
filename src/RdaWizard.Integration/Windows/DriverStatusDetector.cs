@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using RdaWizard.Core.Models;
 using RdaWizard.Core.Services;
@@ -12,9 +11,10 @@ namespace RdaWizard.Integration.Windows;
 /// TRANSPORT-CONTRACT §9, exactly as the core's own transport chooses paths:
 /// CreateFile("\\.\RDA") presence probe → GLE classification → SCM
 /// installed/stopped distinction. This NEVER issues IOCTLs (transport is
-/// the core's job; we only detect + label truthfully).
+/// the core's job; we only detect + label truthfully). All Windows calls
+/// are runtime-guarded so the type constructs on any host — probes report
+/// Unknown elsewhere.
 /// </summary>
-[SupportedOSPlatform("windows")]
 public sealed partial class DriverStatusDetector
 {
     private const uint GenericRead = 0x80000000;
@@ -67,22 +67,29 @@ public sealed partial class DriverStatusDetector
         return new DriverStatus { State = state, WireVersion = null, LastError = gle };
     }
 
-    private bool ServiceExists()
+    private static bool ServiceExists()
     {
+        var scm = IntPtr.Zero;
+        var service = IntPtr.Zero;
         try
         {
-            using var scm = OpenSCManagerW(IntPtr.Zero, IntPtr.Zero, ScManagerEnumerateService);
+            scm = OpenSCManagerW(IntPtr.Zero, IntPtr.Zero, ScManagerEnumerateService);
             if (scm == IntPtr.Zero)
             {
                 return false;
             }
 
-            using var service = OpenServiceW(scm, "RDA", ServiceQueryStatus);
+            service = OpenServiceW(scm, "RDA", ServiceQueryStatus);
             return service != IntPtr.Zero;
         }
         catch
         {
             return false;
+        }
+        finally
+        {
+            if (service != IntPtr.Zero) CloseHandle(service);
+            if (scm != IntPtr.Zero) CloseHandle(scm);
         }
     }
 
@@ -100,6 +107,7 @@ public sealed partial class DriverStatusDetector
         IntPtr hTemplateFile);
 
     [LibraryImport("kernel32", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseHandle(IntPtr hObject);
 
     [LibraryImport("advapi32", EntryPoint = "OpenSCManagerW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]

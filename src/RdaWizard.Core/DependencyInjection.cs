@@ -12,10 +12,11 @@ namespace RdaWizard.Core;
 /// <summary>
 /// Core DI registrations. The App layer calls <see cref="AddRdaWizardCore"/>
 /// inside its Generic Host setup; the Integration layer adds the engine
-/// services (<see cref="AddRdaWizardIntegration"/> in that project).
+/// services in its own project (RdaWizard.Integration.DependencyInjection).
 /// </summary>
 public static class DependencyInjection
 {
+    /// <summary>Registers navigation, settings, localization, clock, and all page ViewModels.</summary>
     public static IServiceCollection AddRdaWizardCore(this IServiceCollection services)
     {
         // Infrastructure
@@ -47,7 +48,12 @@ public static class DependencyInjection
 /// <summary>Real clock (tests substitute their own IClock).</summary>
 public sealed class SystemClock : IClock
 {
+    /// <summary>Current UTC time.</summary>
     public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+
+    /// <summary>Stopwatch timestamp frequency (ticks per second).</summary>
     public long TimestampFrequency => Stopwatch.Frequency;
+
+    /// <summary>Current high-resolution timestamp.</summary>
     public long Timestamp => Stopwatch.GetTimestamp();
 }

@@ -49,8 +49,9 @@ public partial class AboutViewModel : ViewModelBase
     /// <summary>Opens the OSS licenses text (App renders it in a dialog).</summary>
     public static event Action? LicensesRequested;
 
+    /// <summary>Requests the licenses view.</summary>
     [RelayCommand]
-    public void ShowLicenses() => LicensesRequested?.Invoke();
+    public static void ShowLicenses() => LicensesRequested?.Invoke();
 }
 
 /// <summary>Engine (rrecov) presence + version info.</summary>

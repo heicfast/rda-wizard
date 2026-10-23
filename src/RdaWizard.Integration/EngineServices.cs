@@ -20,7 +20,7 @@ public sealed class DeviceEnumerationService : IDeviceEnumerationService
 
     public async Task<EnumerationResult> EnumerateAsync(CancellationToken cancellationToken = default)
     {
-        var run = await _engine.RunAsync(["list"], keepLine: static _ => true, cancellationToken).ConfigureAwait(false);
+        var run = await _engine.RunAsync(["list"], keepLine: static _ => true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // "list" exits 0 even on enumeration failure (G-20) — parse stdout truth.
         var lines = run.KeptLines;
@@ -118,7 +118,7 @@ public sealed class ScanService : IScanService
                                      line.StartsWith("scan failed", StringComparison.Ordinal) ||
                                      line.StartsWith("session saved", StringComparison.Ordinal) ||
                                      ScanOutputParser.TryParseSummaryJson(line, out _),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         if (run.WasCancelled)
         {

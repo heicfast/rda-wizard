@@ -14,7 +14,7 @@ namespace RdaWizard.Integration.Cli;
 /// final "done" line; tree dumps can reach millions of lines. Therefore:
 /// - stdout is read from the RAW stream and split on \r AND \n so progress
 ///   arrives live;
-/// - every complete line passes <paramref name="onLine"/> (parsers decide
+/// - every complete line passes the onLine callback (parsers decide
 ///   what matters) — the host retains only the head (first
 ///   <see cref="HeadRetentionLines"/>) and the tail (last
 ///   <see cref="TailRetentionLines"/>) plus everything a sink flags as
@@ -67,9 +67,9 @@ public sealed class EngineProcessHost
         IReadOnlyList<string> arguments,
         Action<string>? onLine = null,
         KeepLinePolicy? keepLine = null,
-        CancellationToken cancellationToken = default,
         int timeoutSeconds = 0,
-        string? workingDirectory = null)
+        string? workingDirectory = null,
+        CancellationToken cancellationToken = default)
     {
         var exe = _locator.Locate()
             ?? throw new InvalidOperationException(
@@ -115,7 +115,8 @@ public sealed class EngineProcessHost
                 timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
             }
 
-            using var registration = (timeoutCts ?? cancellationToken).Register(static state =>
+            var effectiveToken = timeoutCts?.Token ?? cancellationToken;
+            using var registration = effectiveToken.Register(static state =>
             {
                 try
                 {
@@ -131,7 +132,7 @@ public sealed class EngineProcessHost
                 }
             }, process);
 
-            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            await process.WaitForExitAsync(effectiveToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
