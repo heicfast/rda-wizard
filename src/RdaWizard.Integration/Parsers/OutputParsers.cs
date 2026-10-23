@@ -11,7 +11,7 @@ namespace RdaWizard.Integration.Parsers;
 /// </summary>
 public static partial class ListOutputParser
 {
-    [GeneratedRegex(@"^Disk\s+(\d+):\s+(\d+)\s+MiB\s+\((.*?)\)\s+(\S+)\s+\[(\w[\w-]*)\]\s+\[(removable|fixed|no-table|GPT|MBR)\]", RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^Disk\s+(\d+):\s+(\d+)\s+MiB\s+\((.*?)\)\s+(\S+)\s+\[(\w[\w-]*)\]\s+\[(removable|fixed|no-table|GPT|MBR)\]", RegexOptions.CultureInvariant)]
     private static partial Regex DiskLineRegex();
 
     // "  Disk %u: %llu MiB (%s) %s [%s] %s" — fields: number, MiB, (model), serial, [removable|fixed], [GPT|MBR|no-table]
@@ -94,7 +94,7 @@ public static partial class ListOutputParser
 public static partial class ScanOutputParser
 {
     // "\r  %5.1f%%  (%lld s)   " → after \r-splitting: "  42.1%  (12 s)   "
-    [GeneratedRegex(@"^\s*(\d+(?:\.\d+)?)%\s+\((\d+)\s*s\)", RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^\s*(\d+(?:\.\d+)?)%\s+\((\d+)\s*s\)", RegexOptions.CultureInvariant)]
     private static partial Regex ProgressLineRegex();
 
     /// <summary>Tries to parse an overall progress line. Fraction is engine-weighted (quick→deep→carve, monotonic).</summary>
@@ -185,7 +185,7 @@ public static partial class ScanOutputParser
 public static partial class StageLogParser
 {
     // "  read-error range: @%llu +%llu (attempts %u)"
-    [GeneratedRegex(@"read-error range:\s*@(\d+)\s*\+(\d+)\s*\(attempts\s*(\d+)\)", RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"read-error range:\s*@(\d+)\s*\+(\d+)\s*\(attempts\s*(\d+)\)", RegexOptions.CultureInvariant)]
     private static partial Regex ReadErrorRegex();
 
     public static bool TryParseReadError(string line, out ReadErrorRange range)

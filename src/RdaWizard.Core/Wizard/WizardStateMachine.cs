@@ -95,14 +95,19 @@ public sealed class WizardStateMachine
         return names;
     }
 
-    /// <summary>Attempts a named transition. Returns the refusal reason on failure, null on success.</summary>
+    /// <summary>Attempts a named transition. Returns the refusal reason on failure, null on success.
+    /// Edge names may be shared by multiple (from,to) pairs — e.g. BackToSelect
+    /// exists from both Configure and Results — so every edge with the name is
+    /// considered; only when none starts at the current state is the
+    /// "not available right now" reason returned.</summary>
     public string? TryTransition(string edgeName, WizardContext context)
     {
+        var anyNameMatch = false;
         foreach (var edge in _edges)
         {
             if (!string.Equals(edge.Name, edgeName, StringComparison.Ordinal)) continue;
-            if (edge.From != _state)
-                return $"This action is not available right now (state: {_state}).";
+            anyNameMatch = true;
+            if (edge.From != _state) continue;
 
             var reason = edge.Guard?.Invoke(context);
             if (reason is not null)
@@ -116,7 +121,9 @@ public sealed class WizardStateMachine
             Transitioned?.Invoke(from, _state, edge.Name);
             return null;
         }
-        return $"Unknown action '{edgeName}'.";
+        return anyNameMatch
+            ? $"This action is not available right now (state: {_state})."
+            : $"Unknown action '{edgeName}'.";
     }
 }
 

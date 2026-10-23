@@ -53,6 +53,9 @@ public sealed class NavigationService : INavigationService
     {
         parameter ??= NavigationParameter.None;
 
+        // Legality first: the state gate wins even over re-activation of the
+        // current page (the shell must never re-show a page the wizard state
+        // has invalidated).
         if (!StatePages[_stateGate].Contains(target))
         {
             var reason = reasonOverride ?? $"The {target} page is not available during the current step ({_stateGate}).";

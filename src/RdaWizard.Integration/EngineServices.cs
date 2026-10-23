@@ -163,9 +163,12 @@ public sealed class ScanService : IScanService
 
         arguments.AddRange(options.Mode.CliFlags());
 
-        if (options.Target.Kind == ScanTargetKind.WholeDisk)
+        if (options.Target.Kind == ScanTargetKind.WholeDisk &&
+            options.Mode is ScanMode.Deep or ScanMode.DeepPlusCarve)
         {
-            // Whole-disk deep semantics: engine's --deep flips the whole_disk view.
+            // --deep flips the engine's whole_disk view (lost-partition discovery).
+            // Quick mode must NOT carry it: --quick-only turns deep+carve off,
+            // and a contradictory flag pair is not part of the frozen contract.
             arguments.Add("--deep");
         }
 

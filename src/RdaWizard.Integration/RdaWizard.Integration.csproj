@@ -19,6 +19,11 @@
     <ProjectReference Include="..\RdaWizard.Core\RdaWizard.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Contract tests exercise the exact CLI flag builder. -->
+    <InternalsVisibleTo Include="RdaWizard.Integration.Tests" />
+  </ItemGroup>
+
   <ItemGroup Label="Windows interop">
     <PackageReference Include="System.Management" />
   </ItemGroup>
