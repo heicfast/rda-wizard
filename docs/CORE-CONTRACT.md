@@ -621,7 +621,7 @@ missing members — single-disk scans only (honest limitation).
 ```
 rrecov list
 rrecov scan --disk N | --volume C: [--deep] [--quick-only] [--no-carve]
-            [--threads N] [--out file.crsf] [--log file] [--json] [--csv]
+            [--threads N] [--out file.crsf] [--resume file.crsf] [--log file] [--json] [--csv]
             [--filter s] [--deleted-only]
 rrecov tree --in file.crsf [--filter s] [--deleted-only] [--csv]
 rrecov recover --in file.crsf --disk N --to DIR [--deleted-only] [--filter s]
@@ -639,8 +639,10 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
   MBR; `no-table` = table parse failed). CORRECTED per docs/PARITY-AUDIT.md **F-C-1**: the
   earlier `[GPT|MBR|no-table]` bracketing in this document was a transcription error that
   shipped a parser matching zero real disks. Per volume
-  `    %c: fs label %llu MiB [BitLocker]`. **Exit 0 even when enumeration fails** (prints
-  `enumeration failed`) — GAP **G-20** for subprocess error detection.
+  `    %c: fs label %llu MiB [BitLocker]`. **Exit 0 ok / 1 when enumeration fails**
+  (`enumeration failed` — COORDINATED UPDATE, core commit 0f88fd9 / FB-K01: the old
+  exit-0-on-failure behavior is gone; subprocess error detection now works. G-20's
+  CLI half is closed — the file-top usage-comment drift half remains tracked).
 - **scan**: `--disk N` whole-disk view (RDA first: `open_rda_partition(L"RDA",N,0)`,
   prints `[transport] RDA driver path (\\.\RDA)` / direct fallback with the CreateFile
   GLE); `--volume C:` → BitLocker check/auto-unlock → `volume_extent` → slice over the
@@ -651,7 +653,12 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
   "elapsed_ms":N}`; then the tree; `--out` saves the session (`session saved: <path>`).
   `--log file` writes a detailed stage log (`scan start`, `scan end rc=… files=… …
   elapsed_ms=… errors=…`, per-range `read-error range: @… +… (attempts …)`).
-  **Exit 0 ok / 1 any failure (open, unknown option, scan rc≠OK, session save failure).**
+  **`--resume file.crsf`** (COORDINATED UPDATE, core 0f88fd9 / ARCH-2+SESS-3): resumes
+  a saved session (quick stages marked done are skipped); without `--out` the resumed
+  file is updated in place. **Ctrl-C** cancels cooperatively (scan/recover/health) — a
+  cancelled scan **saves the session first** (`session saved (cancelled): …` + the
+  resume command line) so nothing is lost. **Exit 0 ok / 1 any failure (open, unknown
+  option, scan rc≠OK, session save failure) / 3 cancelled** (distinct from failure).
 - **tree**: loads `.crsf` (via `ScanController::load_session`), prints `session: N
   file(s)` + tree. Tree text format: `== <root>` then depth-indented `name (size)
   [deleted|risk] [carved|lost]`; `--csv`: `"full\path",logical_size,origin,deleted_state,
@@ -670,7 +677,8 @@ rrecov bench --disk N [--mode seq|rand|open|read|info] [--mb N] [--block-kb N]
   used=…% read=… written=… power-on=…h unsafe-shutdowns=… media-errors=…`,
   `WARNING: critical warning bits 0x%02x`), `seek-penalty (SSD heuristics): …`, `TRIM:
   enabled (WARNING: TRIM erases deleted data on SSDs - disable before recovery) /
-  disabled`. Exit 0 / 1 (cannot open).
+  disabled`. **Exit 0 / 1 (cannot open) / 3 when EVERY health source is unavailable**
+  (COORDINATED UPDATE, core 0f88fd9 / FB-H04 — distinct from open failure).
 - **fix**: `--part P` slices partition P (1-based) from the parsed table, else whole-disk
   LBA0 view. Prints `REFUSED: <reason>` (+ reminder nothing is written without `--apply`),
   `clean <family> volume - nothing to repair (S2: …)`, or the plan
