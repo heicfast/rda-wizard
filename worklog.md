@@ -199,3 +199,28 @@ Priority queue (docs/ROADMAP.md is authoritative):
 - Every UI capability claim must trace to CORE-CONTRACT.md §13 + the gap
   register — the parity auditor verifies exactly this.
 - Push after EVERY coherent unit — the mid-session stop proved the rule.
+
+### PARITY-T2/T3 — audit complete, gate doc mirrored (independent auditor)
+
+NOTE re the coordination note above: "Integration parsers remain contract-
+valid" holds for grammar/flags, but NOT for the list LINE FORMAT — §13
+mis-transcribed the table kind as bracketed at BOTH 183dfcd and 2473c03e;
+the engine has always printed it unbracketed. See F-C-1 below.
+
+- 8 sub-agent parity reports produced (UI appendix: docs/parity/PARITY-UI.md);
+  auditor re-verified all P0/P1 personally against cited code lines.
+- **F-C-1 P0 VERIFIED**: `ListOutputParser` disk regexes
+  (src/RdaWizard.Integration/Parsers/OutputParsers.cs:14,18-19) require
+  bracketed `[GPT|MBR|no-table]`; engine prints table kind unbracketed as the
+  final token (rrecov.cpp:237-242, verified at both commits) → zero disks
+  parsed, Home broken. Root cause: CORE-CONTRACT §13 transcription error
+  inherited by the golden fixture (99 green tests validate the bug).
+- **F-C-2/3/4 P1**: ADR-4 live read-error tailer absent; recovery ignores
+  user selection; fixed 64 MiB space gate vs og P25. Filed for sequencing.
+- State machine 13/30 edges: all implemented edges corpus-backed; F-C-10
+  (two-phase quick→advanced continuation promised by UI-MAP REPLACE-10)
+  absent + undocumented.
+- docs/PARITY-AUDIT.md (mirror) + docs/parity/ appendices committed; core
+  holds the authoritative copy. Gate pushed BEFORE fixes, per mandate.
+- Next: F-C-1 surgical fix in THIS repo (parser + fixture + tests) paired
+  with the CORE-CONTRACT §13 correction in core; issues filed for the rest.
