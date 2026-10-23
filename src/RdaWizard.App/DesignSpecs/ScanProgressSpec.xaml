@@ -1,0 +1,122 @@
+<UserControl x:Class="RdaWizard.App.DesignSpecs.ScanProgressSpec"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+             Tag="DESIGN SPEC — ScanProgress (P06 scan phase) — static data. Evidence: atlas §6 bottom cluster, DYN-scan §7 counters, A08 deep dive.">
+    <!-- Skeleton: toolbar 48 (hidden in scan) + 3-pane results (live) + bottom status bar 88
+         with circular gauge, counters, pause/stop, Recover CTA; Searching strip above. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Live results 3-pane (browse-while-scanning is sacred — P4) -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{DynamicResource Width.TreePane}" />
+                <ColumnDefinition Width="5*" />
+                <ColumnDefinition Width="{DynamicResource Width.PreviewPane}" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Tree pane: progressive branches (DYN-scan: Reconstructed grew 1→16 mid-scan) -->
+            <Border Grid.Column="0" Background="{DynamicResource Brush.Bg.Window}"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,0,1,0">
+                <TreeView Background="Transparent" BorderThickness="0" Padding="8">
+                    <TreeViewItem Header="Windows (C:)  —  1,139,261 files" IsExpanded="True" FontWeight="SemiBold">
+                        <TreeViewItem Header="Deleted  —  48,203" IsExpanded="True">
+                            <TreeViewItem Header="Documents  —  12,842" />
+                            <TreeViewItem Header="Pictures  —  31,204" />
+                        </TreeViewItem>
+                        <TreeViewItem Header="Directory Intact  —  984,201" />
+                        <TreeViewItem Header="Reconstructed  —  61,940 (growing)" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Brand.Interaction}" />
+                        <TreeViewItem Header="Tags Extracted  —  7,120" />
+                        <TreeViewItem Header="File Path Lost  —  18,402" />
+                    </TreeViewItem>
+                </TreeView>
+            </Border>
+
+            <!-- List pane -->
+            <Border Grid.Column="1" Background="{DynamicResource Brush.Bg.Window}">
+                <ListView Background="Transparent" BorderThickness="0">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name" Width="360" />
+                            <GridViewColumn Header="Date Modified" Width="140" />
+                            <GridViewColumn Header="Type" Width="110" />
+                            <GridViewColumn Header="Size" Width="90" />
+                        </GridView>
+                    </ListView.View>
+                    <ListViewItem>
+                        <StackPanel Orientation="Horizontal">
+                            <controls:Icon IconName="Icon.Category.Document" IconKind="Solid" IconSize="16" IconBrush="{DynamicResource Brush.Chart.3}" />
+                            <TextBlock Text=" Q3-report.docx   10/07/26 11:30 PM   Word Document   182 KB" />
+                        </StackPanel>
+                    </ListViewItem>
+                    <ListViewItem>
+                        <StackPanel Orientation="Horizontal">
+                            <controls:Icon IconName="Icon.Category.Picture" IconKind="Solid" IconSize="16" IconBrush="{DynamicResource Brush.Chart.1}" />
+                            <TextBlock Text=" IMG_4471.jpg   10/05/26 3:12 PM   JPEG Image   4.2 MB" />
+                        </StackPanel>
+                    </ListViewItem>
+                </ListView>
+            </Border>
+
+            <!-- Preview pane (P18a shell) -->
+            <Border Grid.Column="2" Background="{DynamicResource Brush.Bg.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="1,0,0,0">
+                <StackPanel Margin="16">
+                    <TextBlock Text="Preview" Style="{DynamicResource Text.CaptionStrong}" />
+                    <Border Background="{DynamicResource Brush.Bg.Canvas}" CornerRadius="8" Height="120" Margin="0,8">
+                        <controls:Icon IconName="Icon.Art.Scanning" IconKind="Art" IconSize="64"
+                                       IconBrush="{DynamicResource Brush.Text.Tertiary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <TextBlock Text="Recovery chances:" Style="{DynamicResource Text.Caption}" />
+                        <controls:ConfidenceBadge Grade="3" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <TextBlock Text="IMG_4471.jpg" Style="{DynamicResource Text.BodyStrong}" Margin="0,8,0,0" />
+                    <TextBlock Text="4.2 MB · JPEG · Existing" Style="{DynamicResource Text.Caption}" Foreground="{DynamicResource Brush.Text.Secondary}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Bottom status bar 88 (atlas §6) -->
+        <Border Grid.Row="1" Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,1,0,0"
+                MinHeight="{DynamicResource Height.StatusBar}">
+            <Grid Margin="16,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Gauge + controls cluster (atlas: gauge center (48,687), pause (104,698), stop (127,698)) -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <controls:CircularGauge Value="21" Label="21%" SubLabel="Quick Scan" />
+                    <StackPanel VerticalAlignment="Center" Margin="16,0,0,0">
+                        <TextBlock Text="Advanced Scanning" Style="{DynamicResource Text.BodyStrong}" />
+                        <TextBlock Text="Files Found: 1,139,157 (147.04 GB)" Style="{DynamicResource Text.Caption}"
+                                   Typography.NumeralAlignment="Tabular" Foreground="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Text="Remaining time: 07m 43s · Reading sector: 134,316,032 / 31,413,598"
+                                   Style="{DynamicResource Text.Caption}" Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Typography.NumeralAlignment="Tabular" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Style="{DynamicResource Button.Icon}" ToolTip="Pause scan">
+                                <controls:Icon IconName="Icon.Scan.Pause" IconSize="20" />
+                            </Button>
+                            <Button Style="{DynamicResource Button.Icon}" ToolTip="Stop scan" Margin="4,0,0,0">
+                                <controls:Icon IconName="Icon.Scan.Stop" IconSize="20" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Recover All CTA (contextual — P06 rule 8) -->
+                <Button Grid.Column="2" Style="{DynamicResource Button.Hero}" Content="Recover All..."
+                        VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

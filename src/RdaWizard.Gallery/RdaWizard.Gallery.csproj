@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Design Gallery — DEVELOPER-ONLY surface (never shipped to end users).
+       Renders every token, component, state, theme. Referenced by ci.yml gallery
+       build + ui-gallery screenshot workflow. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Excluded from production assembly resolution: the App never references
+         this project; it exists in the solution for dev builds only. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RdaWizard.Design\RdaWizard.Design.csproj" />
+    <ProjectReference Include="..\RdaWizard.Controls\RdaWizard.Controls.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -27,6 +27,7 @@
     <SolidColorBrush x:Key="Brush.Brand.SecondaryPressed" Color="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
     <SolidColorBrush x:Key="Brush.BrandTint" Color="#28FFFFFF" />
     <SolidColorBrush x:Key="Brush.BrandTintStrong" Color="#38FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Brand.SecondaryFg" Color="{DynamicResource {x:Static SystemColors.HotTrackBrushKey}}" />
 
     <!-- ===== Status semantics ===== -->
     <SolidColorBrush x:Key="Brush.Status.Success" Color="#FF00CC66" />
@@ -42,6 +43,8 @@
     <SolidColorBrush x:Key="Brush.Status.DangerBg" Color="#FF3D0000" />
     <SolidColorBrush x:Key="Brush.Status.DangerText" Color="#FFFF3333" />
     <SolidColorBrush x:Key="Brush.Status.Info" Color="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+    <SolidColorBrush x:Key="Brush.Status.DangerFill" Color="#FFFF3333" />
+    <SolidColorBrush x:Key="Brush.Status.DangerOn" Color="#FFFFFFFF" />
 
     <!-- ===== Backgrounds ===== -->
     <SolidColorBrush x:Key="Brush.Bg.Window" Color="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />

@@ -18,7 +18,7 @@
     <SolidColorBrush x:Key="Brush.Brand.Deep" Color="#FF284A7F" />
     <SolidColorBrush x:Key="Brush.Brand.Interaction" Color="#FFA8CAFF" />
     <SolidColorBrush x:Key="Brush.Brand.LinkPressed" Color="#FF669EFE" />
-    <SolidColorBrush x:Key="Brush.Brand.On" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="Brush.Brand.On" Color="#FF0B1220" />
     <SolidColorBrush x:Key="Brush.Brand.Focus" Color="#FF669EFE" />
     <SolidColorBrush x:Key="Brush.Brand.Outline" Color="#FF68B4FF" />
     <SolidColorBrush x:Key="Brush.Brand.OutlineHover" Color="#FF99CBFF" />
@@ -26,6 +26,7 @@
     <SolidColorBrush x:Key="Brush.Brand.SecondaryPressed" Color="#FF4D6E97" />
     <SolidColorBrush x:Key="Brush.BrandTint" Color="#1AC6DEFF" />
     <SolidColorBrush x:Key="Brush.BrandTintStrong" Color="#338DBDFF" />
+    <SolidColorBrush x:Key="Brush.Brand.SecondaryFg" Color="#FFA8CAFF" />
 
     <!-- ===== Status semantics ===== -->
     <SolidColorBrush x:Key="Brush.Status.Success" Color="#FF349A37" />
@@ -41,6 +42,8 @@
     <SolidColorBrush x:Key="Brush.Status.DangerBg" Color="#FF652C2D" />
     <SolidColorBrush x:Key="Brush.Status.DangerText" Color="#FFFF8C8C" />
     <SolidColorBrush x:Key="Brush.Status.Info" Color="#FF5094FF" />
+    <SolidColorBrush x:Key="Brush.Status.DangerFill" Color="#FFFF5A5A" />
+    <SolidColorBrush x:Key="Brush.Status.DangerOn" Color="#FF0B1220" />
 
     <!-- ===== Backgrounds ===== -->
     <SolidColorBrush x:Key="Brush.Bg.Window" Color="#FF1B1D1F" />

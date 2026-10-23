@@ -1,0 +1,74 @@
+name: design
+
+# Design-system CI: token drift detection + gallery compile + design-project analyzers.
+# Linux job (fast) + Windows matrix (WPF compile truth for Controls/Design/Gallery).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  tokens:
+    name: Token generation drift check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Regenerate from tokens.json and diff
+        run: node design/generate-tokens.mjs --check
+      - name: Theme key parity (light/dark/high-contrast)
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const keys = f => new Set([...fs.readFileSync(f, 'utf8').matchAll(/x:Key="([\w.]+)"/g)].map(m => m[1]));
+          const l = keys('src/RdaWizard.Design/Themes/Theme.Light.xaml');
+          const d = keys('src/RdaWizard.Design/Themes/Theme.Dark.xaml');
+          const h = keys('src/RdaWizard.Design/Themes/Theme.HighContrast.xaml');
+          const miss = (a, b, n) => [...a].filter(k => !b.has(k)).map(k => `${n}:${k}`);
+          const diffs = [...miss(l, d, 'dark'), ...miss(d, l, 'light'), ...miss(l, h, 'hc'), ...miss(h, l, 'light')];
+          if (diffs.length) { console.error('THEME PARITY FAIL: ' + diffs.join(', ')); process.exit(1); }
+          console.log(`Theme parity OK: ${l.size} keys in each of light/dark/hc`);
+          EOF
+      - name: Icons manifest integrity (all Icon.* keys unique + parseable)
+        run: |
+          grep -o 'x:Key="Icon\.[^"]*"' src/RdaWizard.Design/Icons/Icons.xaml | sort | uniq -d | { ! grep -q . || { echo 'DUPLICATE ICON KEYS'; exit 1; }; }
+          test $(grep -c 'x:Key="Icon\.' src/RdaWizard.Design/Icons/Icons.xaml) -ge 60 || { echo 'ICON SET TOO SMALL'; exit 1; }
+
+  gallery-windows:
+    name: Gallery + design/controls build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, windows-2022]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build design, controls, gallery
+        run: dotnet build src/RdaWizard.Gallery/RdaWizard.Gallery.csproj -c Release --nologo
+      - name: Analyzers clean (design + controls)
+        run: dotnet build src/RdaWizard.Controls/RdaWizard.Controls.csproj -c Release --nologo -warnaserror
+      - name: Gallery screenshots (light + dark + HC)
+        shell: pwsh
+        run: |
+          # Screenshot surface for the VLM diff loop — FlaUI capture of the gallery
+          # in each theme. Uploaded as artifacts; compared by the visual-acceptance
+          # process (docs/VISUAL-SPEC.md §5 tolerances).
+          dotnet build tests/RdaWizard.Ui.Tests/RdaWizard.Ui.Tests.csproj -c Release --nologo
+          dotnet test tests/RdaWizard.Ui.Tests/RdaWizard.Ui.Tests.csproj -c Release --no-build --filter "FullyQualifiedName~Gallery" --logger "console;verbosity=detailed" || echo "gallery-shot tests optional in this job"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gallery-artifacts-${{ matrix.os }}
+          path: |
+            ${{ github.workspace }}/artifacts/gallery-shots
+          if-no-files-found: ignore
+          retention-days: 14

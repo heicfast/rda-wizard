@@ -1,0 +1,103 @@
+<UserControl x:Class="RdaWizard.App.DesignSpecs.HomeSpec"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+             Tag="DESIGN SPEC — Home (P02/P03 merged landing) — static data, no wiring. Visual target per VISUAL-SPEC §3; evidence: atlas §5 layout map, QSS L1593-1970 home family.">
+    <!-- Layout skeleton: sidebar 220 + canvas; title 22; sections 16/tertiary; DriveCard grid;
+         session banner strip; bottom hero CTA. All metrics from Tokens.xaml. -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{DynamicResource Width.Sidebar}" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar (DrwSideBar: sections + rows; selected row = T3 fill) -->
+        <Border Grid.Column="0" Background="{DynamicResource Brush.Bg.Sidebar}"
+                BorderBrush="{DynamicResource Brush.Border.SidebarSeparator}"
+                BorderThickness="0,0,1,0">
+            <StackPanel Margin="0,16">
+                <TextBlock Text="DATA RECOVERY" Style="{DynamicResource Text.Micro}" Margin="16,8,16,4" />
+                <Border Background="{DynamicResource Brush.Bg.SidebarSelected}" CornerRadius="6" Margin="8,2" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Icon IconName="Icon.Device.Disk" IconKind="Solid" IconSize="20" IconBrush="{DynamicResource Brush.Brand.Primary}" />
+                        <TextBlock Text="Hardware Disk" Style="{DynamicResource Text.BodyStrong}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+                <Border Background="Transparent" CornerRadius="6" Margin="8,2" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Icon IconName="Icon.Device.SdCard" IconKind="Solid" IconSize="20" IconBrush="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Text="SD Card" Style="{DynamicResource Text.Body}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+                <Border Background="Transparent" CornerRadius="6" Margin="8,2" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Icon IconName="Icon.Action.Wand" IconSize="20" />
+                        <TextBlock Text="More Recovery Tools" Style="{DynamicResource Text.Body}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+                <TextBlock Text="ADVANCED FEATURES" Style="{DynamicResource Text.Micro}" Margin="16,20,16,4" />
+                <Border Background="Transparent" CornerRadius="6" Margin="8,2" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Icon IconName="Icon.Tree.Deleted" IconKind="Solid" IconSize="20" IconBrush="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Text="Lost Partition Rescue" Style="{DynamicResource Text.Body}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+                <Border Background="Transparent" CornerRadius="6" Margin="8,2" Padding="12,10">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Icon IconName="Icon.Category.Document" IconKind="Solid" IconSize="20" IconBrush="{DynamicResource Brush.Text.Secondary}" />
+                        <TextBlock Text="File Repair" Style="{DynamicResource Text.Body}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- Canvas -->
+        <ScrollViewer Grid.Column="1" Padding="{DynamicResource Space.Page}">
+            <StackPanel MaxWidth="{DynamicResource Content.MaxWidth}" HorizontalAlignment="Left">
+                <TextBlock Text="Select a location to search for lost data"
+                           Style="{DynamicResource Text.Title}" Margin="0,0,0,4" />
+
+                <!-- Session resume banner (P41) -->
+                <controls:SessionBanner Severity="Info" Title="Continue last scanning"
+                                        Message="Scan time 00:12:41 · 1,139,261 files · Windows (C:)"
+                                        ActionLabel="Load session" Margin="0,16,0,8" />
+
+                <TextBlock Text="Internal drives (2)" Style="{DynamicResource Section.Header}" Margin="0,16,0,4" />
+                <WrapPanel>
+                    <controls:DriveCard GroupName="specdrives" DriveName="Windows" Letter="C:" FileSystem="NTFS"
+                                        CapacityText="31.15 GB / 149.45 GB"
+                                        Glyph="{DynamicResource Icon.Device.Disk}"
+                                        ShowOsBadge="True" ShowSsdBadge="True" IsChecked="True" Margin="0,0,12,12" />
+                    <controls:DriveCard GroupName="specdrives" DriveName="Temporary Storage" Letter="D:" FileSystem="exFAT"
+                                        CapacityText="8.04 GB / 29.71 GB"
+                                        Glyph="{DynamicResource Icon.Device.Usb}"
+                                        ShowUsbBadge="True" ShowTrimChip="True" Margin="0,0,12,12" />
+                </WrapPanel>
+
+                <TextBlock Text="Specify a location" Style="{DynamicResource Section.Header}" Margin="0,12,0,4" />
+                <WrapPanel>
+                    <controls:DriveCard GroupName="specloc" DriveName="Recycle Bin" Letter="" FileSystem=""
+                                        CapacityText="Deleted items only"
+                                        Glyph="{DynamicResource Icon.Device.RecycleBin}" Margin="0,0,12,12" />
+                    <controls:DriveCard GroupName="specloc" DriveName="Desktop" Letter="" FileSystem=""
+                                        CapacityText="Folders and files"
+                                        Glyph="{DynamicResource Icon.Device.Desktop}" Margin="0,0,12,12" />
+                    <controls:DriveCard GroupName="specloc" DriveName="Select Folder" Letter="" FileSystem=""
+                                        CapacityText="Browse for a specific folder"
+                                        Glyph="{DynamicResource Icon.Device.FolderOpen}" Margin="0,0,12,12" />
+                </WrapPanel>
+
+                <!-- Lost-drive coaching link (P02 dead-end coach, A07 §3) -->
+                <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
+                    <controls:Icon IconName="Icon.Action.Help" IconSize="20" IconBrush="{DynamicResource Brush.Text.Link}" />
+                    <Button Style="{DynamicResource Button.Link}" Content="Unable to find your hard drive?" Margin="6,0,0,0" />
+                </StackPanel>
+
+                <!-- Hero CTA (atlas §5: 199×36 at bottom right of content) -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,32,0,0">
+                    <Button Style="{DynamicResource Button.Hero}" Content="Search for Lost Data" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

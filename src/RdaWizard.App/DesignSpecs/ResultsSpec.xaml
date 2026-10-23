@@ -1,0 +1,157 @@
+<UserControl x:Class="RdaWizard.App.DesignSpecs.ResultsSpec"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+             Tag="DESIGN SPEC — Results (P06 3-pane explorer) — static data. Evidence: atlas §8 toolbar/row/CTA map, A34 chrome, A35 §9 filter contents.">
+    <!-- Skeleton: toolbar 48 (nav + breadcrumb + view toggle + filter + search) + filter bar 56
+         + 3-pane (tree 240 / list / preview 300) + status bar 88 with contextual Recover CTA. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{DynamicResource Height.Toolbar}" />
+            <RowDefinition Height="{DynamicResource Height.FilterBar}" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar (atlas §8: nav cluster 18-144, breadcrumb 165-280, toggle 650-688, filter 695-780, search 792-980) -->
+        <Border Grid.Row="0" Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,0,0,1">
+            <DockPanel Margin="12,0">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{DynamicResource Button.Icon}" ToolTip="Home">
+                        <controls:Icon IconName="Icon.Nav.Home" IconSize="20" />
+                    </Button>
+                    <Button Style="{DynamicResource Button.Icon}" ToolTip="Back" Margin="4,0,0,0">
+                        <controls:Icon IconName="Icon.Nav.Back" IconSize="20" />
+                    </Button>
+                    <Button Style="{DynamicResource Button.Icon}" ToolTip="Up one level" Margin="4,0,0,0">
+                        <controls:Icon IconName="Icon.Nav.Up" IconSize="20" />
+                    </Button>
+                    <!-- Breadcrumb -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                        <Button Style="{DynamicResource Button.Link}" Content="Windows (C:)" />
+                        <TextBlock Text="›" Foreground="{DynamicResource Brush.Text.Tertiary}" Margin="6,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Documents" Style="{DynamicResource Text.BodyStrong}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{DynamicResource Button.Icon}" ToolTip="Switch to icon view" Margin="0,0,4,0">
+                        <controls:Icon IconName="Icon.Action.ViewGrid" IconSize="20" />
+                    </Button>
+                    <Button Style="{DynamicResource Button.Secondary}" Content="Filter" Margin="0,0,8,0" />
+                    <controls:SearchField Placeholder="Search files or folders" Width="{DynamicResource Width.SearchBox}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Filter bar (A35 §9: Show/File Type/Date Modified/File Size + AI toggle) -->
+        <Border Grid.Row="1" Background="{DynamicResource Brush.Bg.SearchStrip}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="12,0" VerticalAlignment="Center">
+                <Button Style="{DynamicResource Button.Outline}" Content="Path: All" />
+                <Button Style="{DynamicResource Button.Outline}" Content="File Type: All" Margin="8,0,0,0" />
+                <Button Style="{DynamicResource Button.Outline}" Content="Date Modified: Any" Margin="8,0,0,0" />
+                <Button Style="{DynamicResource Button.Outline}" Content="File Size: Any" Margin="8,0,0,0" />
+                <controls:ToggleSwitch Header="AI Recommend" Margin="16,0,0,0" />
+                <!-- Search-active removable chip (atlas §8 search state) -->
+                <Border Background="{DynamicResource Brush.BrandTintStrong}" CornerRadius="14" Padding="10,4" Margin="16,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="'invoice'" Style="{DynamicResource Text.CaptionStrong}" />
+                        <Button Style="{DynamicResource Button.Icon}" Content="✕" Width="20" Height="20" Margin="6,0,0,0"
+                                AutomationProperties.Name="Remove search filter" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- 3-pane -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{DynamicResource Width.TreePane}" />
+                <ColumnDefinition Width="5*" />
+                <ColumnDefinition Width="{DynamicResource Width.PreviewPane}" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{DynamicResource Brush.Bg.Window}"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,0,1,0">
+                <TreeView Background="Transparent" BorderThickness="0" Padding="8">
+                    <TreeViewItem Header="Windows (C:)  —  1.11M files" IsExpanded="True" FontWeight="SemiBold">
+                        <TreeViewItem Header="Deleted  —  48,203" IsExpanded="True">
+                            <TreeViewItem Header="Documents  —  12,842" IsSelected="True" />
+                        </TreeViewItem>
+                        <TreeViewItem Header="Directory Intact  —  984,201" />
+                        <TreeViewItem Header="Reconstructed  —  61,940" />
+                        <TreeViewItem Header="File Path Lost  —  18,402" />
+                        <TreeViewItem Header="Unimportant  —  21,832" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    </TreeViewItem>
+                </TreeView>
+            </Border>
+            <Border Grid.Column="1" Background="{DynamicResource Brush.Bg.Window}">
+                <ListView Background="Transparent" BorderThickness="0">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name" Width="360" />
+                            <GridViewColumn Header="Date Modified" Width="{DynamicResource Col.DateModified}" />
+                            <GridViewColumn Header="Type" Width="{DynamicResource Col.Type}" />
+                            <GridViewColumn Header="Size" Width="{DynamicResource Col.Size}" />
+                        </GridView>
+                    </ListView.View>
+                    <ListViewItem IsSelected="True">
+                        <StackPanel Orientation="Horizontal">
+                            <controls:Icon IconName="Icon.Category.Picture" IconKind="Solid" IconSize="16" IconBrush="{DynamicResource Brush.Chart.1}" />
+                            <TextBlock Text=" invoice-2026-Q3.docx   10/07/26 11:30 PM   Word Document   182 KB" />
+                        </StackPanel>
+                    </ListViewItem>
+                    <ListViewItem>
+                        <StackPanel Orientation="Horizontal">
+                            <controls:Icon IconName="Icon.Category.Video" IconKind="Solid" IconSize="16" IconBrush="{DynamicResource Brush.Chart.2}" />
+                            <TextBlock Text=" mov_0042.mp4   10/03/26 8:44 AM   MP4 Video   1.4 GB" />
+                        </StackPanel>
+                    </ListViewItem>
+                    <ListViewItem>
+                        <StackPanel Orientation="Horizontal">
+                            <controls:Icon IconName="Icon.Category.Archive" IconKind="Solid" IconSize="16" IconBrush="{DynamicResource Brush.Chart.5}" />
+                            <TextBlock Text=" backup-2025.zip   09/28/26 2:19 PM   ZIP Archive   412 MB" />
+                        </StackPanel>
+                    </ListViewItem>
+                </ListView>
+            </Border>
+            <Border Grid.Column="2" Background="{DynamicResource Brush.Bg.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="1,0,0,0">
+                <StackPanel Margin="16">
+                    <TextBlock Text="invoice-2026-Q3.docx" Style="{DynamicResource Text.BodyStrong}" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Recovery chances:" Style="{DynamicResource Text.Caption}" VerticalAlignment="Center" />
+                        <controls:ConfidenceBadge Grade="3" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <Border Background="{DynamicResource Brush.Bg.Canvas}" CornerRadius="8" Height="140" Margin="0,12">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <controls:Icon IconName="Icon.File.Document" IconKind="Solid" IconSize="48"
+                                           IconBrush="{DynamicResource Brush.Chart.3}" HorizontalAlignment="Center" />
+                            <TextBlock Text="182 KB · Word Document" Style="{DynamicResource Text.Caption}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Button Style="{DynamicResource Button.Outline}" Content="Preview" HorizontalAlignment="Stretch" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status bar with contextual CTA (row selected → "Recover ...") -->
+        <Border Grid.Row="3" Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}" BorderThickness="0,1,0,0"
+                MinHeight="{DynamicResource Height.StatusBar}">
+            <DockPanel Margin="16,12">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <controls:Icon IconName="Icon.Status.Check" IconKind="Solid" IconSize="24" IconBrush="{DynamicResource Brush.Health.Good}" />
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Scan Completed, 1 of 1,139,261 files selected" Style="{DynamicResource Text.BodyStrong}" />
+                        <TextBlock Text="Selection: 182 KB · 1 file" Style="{DynamicResource Text.Caption}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}" Typography.NumeralAlignment="Tabular" />
+                    </StackPanel>
+                </StackPanel>
+                <Button DockPanel.Dock="Right" Style="{DynamicResource Button.Hero}" Content="Recover ..."
+                        VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

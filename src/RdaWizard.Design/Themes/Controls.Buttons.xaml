@@ -13,7 +13,7 @@
          #2978FF text, hover #C4D7FF, pressed #84ACFF, disabled #DEE1ED/white) ===== -->
     <Style x:Key="Button.Secondary" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{DynamicResource Brush.Tint.T3}" />
-        <Setter Property="Foreground" Value="{DynamicResource Brush.Brand.Interaction}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Brand.SecondaryFg}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Tint.T3}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="FontWeight" Value="SemiBold" />

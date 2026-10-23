@@ -1,0 +1,54 @@
+<UserControl x:Class="RdaWizard.App.DesignSpecs.RecoveryDialogSpec"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+             Tag="DESIGN SPEC — Destination picker (P23 modal 560×520 + gates) — static. Evidence: atlas §10, QSS ChooseDestinationPathDialog 29 rules (most-styled surface).">
+    <!-- Skeleton: modal surface r12 + scrim; header + count; Local|Cloud tabs; destination
+         rows (queue rows); Choose-folder row; Enable-file-repair toggle (ON default);
+         Save disabled→enabled; warning coaching for source overlap. -->
+    <Grid Background="{DynamicResource Brush.Bg.Overlay}">
+        <Border Style="{DynamicResource Dialog.Surface}" Width="560" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="Choose a destination path to save the file:" Style="{DynamicResource Text.Header}" />
+                <TextBlock Text="You have 1 file (182 KB) to recover." Style="{DynamicResource Text.Body}"
+                           Foreground="{DynamicResource Brush.Text.Secondary}" Margin="0,4,0,0" />
+
+                <!-- Local | Cloud tabs -->
+                <controls:Segmented Margin="0,16,0,0">
+                    <controls:Segmented.ItemsSource>
+                        <x:Array Type="{x:Type sys:String}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                            <sys:String>Local</sys:String>
+                            <sys:String>Cloud</sys:String>
+                        </x:Array>
+                    </controls:Segmented.ItemsSource>
+                </controls:Segmented>
+
+                <StackPanel Margin="0,12,0,0">
+                    <controls:RecoveryQueueRow GroupName="specdest" DestinationName="Windows (C:)"
+                                               CapacityText="31.30 GB free / 149.45 GB" VerdictText="Fits"
+                                               Glyph="{DynamicResource Icon.Device.Disk}" IsChecked="True" Margin="0,0,0,8" />
+                    <controls:RecoveryQueueRow GroupName="specdest" DestinationName="Temporary Storage (D:)"
+                                               CapacityText="8.04 GB free / 29.71 GB" VerdictText="Fits"
+                                               Glyph="{DynamicResource Icon.Device.Usb}" Margin="0,0,0,8" />
+                    <controls:RecoveryQueueRow GroupName="specdest" DestinationName="Choose folder..."
+                                               CapacityText="Browse to any other location"
+                                               VerdictText="" Glyph="{DynamicResource Icon.Device.FolderOpen}" />
+                </StackPanel>
+
+                <!-- Danger coaching (destination = scan source; atlas §10) -->
+                <controls:Banner Severity="Danger" IsDismissible="False" Margin="0,12,0,0"
+                                 Title="Do not save data to this drive"
+                                 Message="Data might be OVERWRITTEN and LOST PERMANENTLY if you save files to the original drive (where you lost data)." />
+
+                <!-- Enable file repair toggle (ON default — atlas §10: pill (255,613)) -->
+                <controls:ToggleSwitch Header="Enable file repair" IsChecked="True" Margin="0,16,0,0" />
+
+                <!-- Footer: Save disabled until destination selected -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button Style="{DynamicResource Button.Secondary}" Content="Cancel" MinWidth="90" Margin="0,0,8,0" />
+                    <Button Style="{DynamicResource Button.Primary}" Content="Save" MinWidth="110" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

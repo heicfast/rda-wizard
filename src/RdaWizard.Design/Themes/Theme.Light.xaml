@@ -26,10 +26,11 @@
     <SolidColorBrush x:Key="Brush.Brand.SecondaryPressed" Color="#FF84ACFF" />
     <SolidColorBrush x:Key="Brush.BrandTint" Color="#1A0560FD" />
     <SolidColorBrush x:Key="Brush.BrandTintStrong" Color="#330560FD" />
+    <SolidColorBrush x:Key="Brush.Brand.SecondaryFg" Color="#FF2264D5" />
 
     <!-- ===== Status semantics ===== -->
     <SolidColorBrush x:Key="Brush.Status.Success" Color="#FF30B373" />
-    <SolidColorBrush x:Key="Brush.Status.SuccessText" Color="#FF1E8A56" />
+    <SolidColorBrush x:Key="Brush.Status.SuccessText" Color="#FF1D8352" />
     <SolidColorBrush x:Key="Brush.Status.SuccessBg" Color="#FFE6FFF3" />
     <SolidColorBrush x:Key="Brush.Status.Warning" Color="#FFFFC10E" />
     <SolidColorBrush x:Key="Brush.Status.WarningText" Color="#FF413B34" />
@@ -39,8 +40,10 @@
     <SolidColorBrush x:Key="Brush.Status.DangerAlt" Color="#FFE74F4F" />
     <SolidColorBrush x:Key="Brush.Status.DangerPressed" Color="#FFD23636" />
     <SolidColorBrush x:Key="Brush.Status.DangerBg" Color="#FFFDD5D5" />
-    <SolidColorBrush x:Key="Brush.Status.DangerText" Color="#FFC21F1F" />
+    <SolidColorBrush x:Key="Brush.Status.DangerText" Color="#FFC01F1F" />
     <SolidColorBrush x:Key="Brush.Status.Info" Color="#FF0560FD" />
+    <SolidColorBrush x:Key="Brush.Status.DangerFill" Color="#FFC21F1F" />
+    <SolidColorBrush x:Key="Brush.Status.DangerOn" Color="#FFFFFFFF" />
 
     <!-- ===== Backgrounds ===== -->
     <SolidColorBrush x:Key="Brush.Bg.Window" Color="#FFFFFFFF" />
@@ -66,7 +69,7 @@
     <SolidColorBrush x:Key="Brush.Text.Tertiary" Color="#FF8794B3" />
     <SolidColorBrush x:Key="Brush.Text.Disabled" Color="#FFA0A6B1" />
     <SolidColorBrush x:Key="Brush.Text.OnAccent" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="Brush.Text.Link" Color="#FF2978FF" />
+    <SolidColorBrush x:Key="Brush.Text.Link" Color="#FF256CE7" />
     <SolidColorBrush x:Key="Brush.Text.LinkPressed" Color="#FF0F62F0" />
     <SolidColorBrush x:Key="Brush.Text.Inverse" Color="#FFFFFFFF" />
 
@@ -94,11 +97,11 @@
 
     <!-- ===== Confidence badges (recovery-chance language) ===== -->
     <SolidColorBrush x:Key="Brush.Confidence.Excellent.Bg" Color="#FFE6FFF3" />
-    <SolidColorBrush x:Key="Brush.Confidence.Excellent.Fg" Color="#FF1E8A56" />
+    <SolidColorBrush x:Key="Brush.Confidence.Excellent.Fg" Color="#FF1D8352" />
     <SolidColorBrush x:Key="Brush.Confidence.Partial.Bg" Color="#FFFFF3D1" />
     <SolidColorBrush x:Key="Brush.Confidence.Partial.Fg" Color="#FF8A5A00" />
     <SolidColorBrush x:Key="Brush.Confidence.Overwritten.Bg" Color="#FFFDD5D5" />
-    <SolidColorBrush x:Key="Brush.Confidence.Overwritten.Fg" Color="#FFC21F1F" />
+    <SolidColorBrush x:Key="Brush.Confidence.Overwritten.Fg" Color="#FFC01F1F" />
     <SolidColorBrush x:Key="Brush.Confidence.MetadataOnly.Bg" Color="#FFE9EDF5" />
     <SolidColorBrush x:Key="Brush.Confidence.MetadataOnly.Fg" Color="#FF616777" />
     <SolidColorBrush x:Key="Brush.Confidence.Unknown.Bg" Color="#FFE9EDF5" />

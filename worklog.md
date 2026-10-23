@@ -355,3 +355,51 @@ tag v0.1.0-design.
 Local build: full solution green via EnableWindowsTargeting (Linux). Windows CI remains
 the runtime/FlaUI truth. Next: gallery app, comps, motion demo, a11y/DPI/l10n evidence,
 CI wiring, acceptance grid, tag.
+
+---
+
+## Session 2 (cont.) — gallery, comps, a11y evidence, acceptance grid, design CI
+
+### VD-T13..T17 + T19 highlights
+
+- **Motion (VD-E)**: tokens in tokens.json (durations ×11 + easings), gallery Motion tab
+  demos page-transition/panel/press choreography; reduced-motion honored via
+  SystemParameters.ClientAreaAnimation in Toast/ProgressSurface/gallery. Spec:
+  VISUAL-SPEC §2.5, DESIGN-SYSTEM §7.
+- **Gallery (T15)**: src/RdaWizard.Gallery (dev-only, in solution) — overview stats,
+  live-enumerated color swatches + icon grids (reads dictionaries themselves — zero
+  hand-maintained lists), typography ramp w/ CJK+German stress, geometry (spacing/
+  radii/elevation/tints/charts), buttons ×6 variants ×states, inputs, feedback
+  (banners/toasts/badges/progress/gauge), data (DriveCard/chips/queue rows/health),
+  states (empty/error/skeleton), motion, dialog shells. Live light/dark/HC switcher.
+- **Comps (VD-C, T14)**: App/DesignSpecs/ — HomeSpec (sidebar+canvas+session banner+
+  tiles+hero CTA per atlas §5), ScanProgressSpec (3-pane live + gauge/counters/pause/
+  stop/Recover per atlas §6), ResultsSpec (toolbar/filter-bar/3-pane/contextual CTA per
+  atlas §8/A34/A35§9), RecoveryDialogSpec (P23 modal + gates per atlas §10),
+  CompactSpecs (P00 splash, scan modes, P08a celebration 540×380, P31 health).
+  All static-data, all design-system primitives only, compile-verified.
+- **A11y (T16)**: design/contrast-matrix.mjs → docs/ACCESSIBILITY.md (56 pairs ×
+  light/dark, WCAG 2.2 relative luminance, alpha composited; CI-fails on regression).
+  11 genuine DRW-palette AA failures found and remediated via [ADV] tokens: Text.Link
+  light #256CE7, SuccessText #1D8352, DangerText #C01F1F, SecondaryFg #2264D5,
+  DangerFill/DangerOn pair, Brand.On dark → inverse. Beyond-color register + focus +
+  target-size + reduce-motion + SR labels documented. MATRIX GREEN.
+- **CI (T18)**: .github/workflows/design.yml — ubuntu token-drift + theme-key parity +
+  icon-manifest jobs; windows-latest/2022 gallery+controls builds w/ analyzers-as-errors.
+- **Acceptance (T19)**: docs/VISUAL-ACCEPTANCE.md — 20-param × deliverable grid with
+  verdicts + evidence keys; 7 tracked items (A-01..A-07) with rationale (DPI/dark
+  golden images + 1M-row perf + first VLM diff round need Windows-runner captures —
+  the design.yml steps exist, scheduled v0.2.0).
+- Local gates at commit: full solution builds (EnableWindowsTargeting), token check
+  byte-stable (106 keys × 3 themes), contrast matrix 0 failures, icons ≥60 integrity.
+
+### Handoff pins (next agents)
+
+- Design system consumers: reference ONLY DynamicResource keys (106 Brush/Gradient/
+  Effect + geometry/type/motion in Tokens.xaml) + Metrics.cs constants. Existing keys
+  unchanged since v0.1.0-ui — migration is additive. Text.CaptionStrong now EXISTS
+  (was silently missing).
+- Windows CI must run the new `design` workflow; gallery artifacts land as
+  gallery-artifacts-* for the VLM diff loop.
+- v0.2.0 queue: A-01..A-07 (golden images, perf job, diff loop round 1, Repair/
+  Settings/About comps, 32px icon variants).

@@ -886,3 +886,38 @@ List.RowDetail=44  List.IconTile=160x160  Tree.Row=28  Tree.Indent=16
 `easeus-drw-research/re-workspace/artifacts/UIUX/` (A01–A35, DYN-*), `og-codebase/style.css`,
 `og-codebase/config/themdark.ini`, `og-codebase/Resource{,Dark}/ImageResource.xml`,
 `architecture/05-uiux-architecture.md`.*
+
+---
+
+## 14. v0.1.0-design addendum — systemization by the visual-design session
+
+The v1.0 spec above is now **systematized as code** (session 2, visual-design agent):
+
+- **Token source of truth**: `design/tokens.json` → `design/generate-tokens.mjs` →
+  `Tokens.xaml` + `Theme.Light/Dark/HighContrast.xaml` + `Metrics.cs` (byte-stable,
+  CI-checked; 106 theme keys × 3 themes, parity enforced). §2/§3/§4/§5/§7 tables above
+  remain the human-readable rationale; tokens.json carries the same values with
+  per-key evidence citations.
+- **High-contrast theme** (§18 parity): SystemColors dynamic references for core roles;
+  high-visibility literals for semantics; gradients → solid; elevation OFF. ThemeService
+  auto-engages on OS high-contrast.
+- **Contrast remediations** ([ADV], all matrix-verified in docs/ACCESSIBILITY.md):
+  Text.Link light #256CE7 (was #2978FF 4.02:1), SuccessText #1D8352, DangerText #C01F1F,
+  secondary-button fg #2264D5 on T3, danger fill/on pair, Brand.On dark = inverse
+  (#0B1220 on #5094FF = 6.2:1). DRW's own palette shipped below AA in these pairs —
+  our system repairs them (design principle: trust requires legibility).
+- **Component library**: §8 specs are now implemented — Controls.Base/Buttons/Navigation/
+  Surfaces.xaml + 14 custom controls (ToggleSwitch, Banner, Toast, Segmented,
+  ProgressSurface, CircularGauge, FileTypeFilterChip, DriveCard, SearchField, Breadcrumb,
+  RecoveryQueueRow, SessionBanner, Icon, Arc). State matrices per §8 common grid.
+- **Icon set**: 70+ original geometries (chrome 24-grid stroke / tiles 20-grid filled /
+  art register) — `Icons.xaml`; inventory from §6 taxonomy, art original per §12.
+- **GAP FIX**: `Text.CaptionStrong` (referenced since v0.1.0-ui, never defined — silent
+  runtime fallback) + full Text.* family completion.
+- **Design gallery** (dev-only): `src/RdaWizard.Gallery` — every token/component/state/
+  theme rendered live; swatches enumerate the dictionaries themselves.
+- **Design-spec comps**: `src/RdaWizard.App/DesignSpecs/` (Home, ScanProgress, Results,
+  RecoveryDialog, CompactSpecs: splash/modes/celebration/health).
+- **Evidence chain**: VISUAL-EVIDENCE.md (63-shot VLM extraction + 15 verdicts) ·
+  QSS-EVIDENCE.md (hard values, line refs) · VISUAL-SPEC.md (authority order, acceptance
+  envelope) · ACCESSIBILITY.md (CI-enforced contrast matrix) · INTERIM-ASSETS.md.

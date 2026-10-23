@@ -1,0 +1,489 @@
+<Window x:Class="RdaWizard.Gallery.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:RdaWizard.Controls;assembly=RdaWizard.Controls"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="RDA Wizard — Design Gallery (dev only)"
+        Width="1280" Height="860"
+        MinWidth="800" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Brush.Bg.Canvas}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: title + live theme switcher (light/dark/HC) -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource Brush.Bg.Window}"
+                BorderBrush="{DynamicResource Brush.Border.Hairline}"
+                BorderThickness="0,0,0,1"
+                Padding="16,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <controls:Icon IconName="Icon.Action.About" IconKind="Solid" IconSize="24"
+                                   IconBrush="{DynamicResource Brush.Brand.Primary}" />
+                    <TextBlock Text="RDA Data Recovery Wizard — Design Gallery"
+                               Style="{DynamicResource Text.Subtitle}"
+                               Margin="10,0,0,0" />
+                    <TextBlock Text="DEVELOPER SURFACE — NOT SHIPPED"
+                               Style="{DynamicResource Text.Micro}"
+                               Foreground="{DynamicResource Brush.Status.WarningStrong}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0" />
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="Theme:" Style="{DynamicResource Text.Caption}"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="ThemeSelector"
+                              Width="160"
+                              SelectedIndex="0"
+                              SelectionChanged="OnThemeChanged"
+                              AutomationProperties.Name="Gallery theme">
+                        <ComboBoxItem Content="Light" />
+                        <ComboBoxItem Content="Dark" />
+                        <ComboBoxItem Content="High contrast" />
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Gallery body: one section per design-system area -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+            <TabItem Header="Overview">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="960" HorizontalAlignment="Left">
+                        <TextBlock Text="The single source of visual truth" Style="{DynamicResource Text.Title}" />
+                        <TextBlock Style="{DynamicResource Text.BodySecondary}" Margin="0,8,0,16" TextWrapping="Wrap"
+                                   Text="Every token, component, state, and theme of the rda-wizard design system, rendered live from the generated resource dictionaries. Evidence chain: design/tokens.json (source of truth) → generate-tokens.mjs → Theme.Light/Dark/HighContrast.xaml + Tokens.xaml. Parameters and their citations: docs/VISUAL-SPEC.md. VLM corpus evidence: docs/VISUAL-EVIDENCE.md. QSS hard evidence: docs/QSS-EVIDENCE.md." />
+                        <UniformGrid Columns="3" Rows="2">
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="103" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" />
+                                    <TextBlock Text="theme tokens × 3 themes (key parity enforced)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="70+" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" />
+                                    <TextBlock Text="original icon geometries (chrome/tile/art registers)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="60" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" />
+                                    <TextBlock Text="components with full state matrices (VISUAL-SPEC §4)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="20" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" />
+                                    <TextBlock Text="quality parameters judged per surface (VISUAL-ACCEPTANCE.md)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="2" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" />
+                                    <TextBlock Text="locales at parity: en + zh-CN (CJK fallback chain live)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{DynamicResource Card}" Margin="6">
+                                <StackPanel>
+                                    <TextBlock Text="100–200%" Style="{DynamicResource Text.Display}" Foreground="{DynamicResource Brush.Brand.Primary}" FontSize="22" />
+                                    <TextBlock Text="per-monitor DPI (PerMonitorV2 manifest)" Style="{DynamicResource Text.Caption}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Colors">
+                <ScrollViewer Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="Color tokens (enumerated live from the active theme dictionary)"
+                                   Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <WrapPanel x:Name="ColorSwatchPanel" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Typography">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+                        <TextBlock Text="Type ramp" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <TextBlock Text="Display 28/34 Bold — The quick brown fox" Style="{DynamicResource Text.Display}" Margin="0,4" />
+                        <TextBlock Text="Title 22/28 Semibold — The quick brown fox" Style="{DynamicResource Text.Title}" Margin="0,4" />
+                        <TextBlock Text="Header 18/24 Semibold — The quick brown fox" Style="{DynamicResource Text.Header}" Margin="0,4" />
+                        <TextBlock Text="Subtitle 16/22 Semibold — The quick brown fox" Style="{DynamicResource Text.Subtitle}" Margin="0,4" />
+                        <TextBlock Text="Body 14/20 Regular — The quick brown fox jumps over the lazy dog 0123456789" Style="{DynamicResource Text.Body}" Margin="0,4" />
+                        <TextBlock Text="BodyStrong 14/20 Semibold — The quick brown fox" Style="{DynamicResource Text.BodyStrong}" Margin="0,4" />
+                        <TextBlock Text="CaptionStrong 13/18 — The quick brown fox" Style="{DynamicResource Text.CaptionStrong}" Margin="0,4" />
+                        <TextBlock Text="Caption 12/16 — The quick brown fox 0123456789" Style="{DynamicResource Text.Caption}" Margin="0,4" />
+                        <TextBlock Text="MICRO 11/14 SEMIBOLD — BADGES ONLY" Style="{DynamicResource Text.Micro}" Margin="0,4" />
+                        <TextBlock Text="Link 14 — interactive action" Style="{DynamicResource Text.Link}" Margin="0,8,4,4" />
+                        <TextBlock Text="1,139,261 files (147.04 GB) — tabular numerals: 000111222333"
+                                   Style="{DynamicResource Text.Numeral}" Margin="0,8,0,4" />
+                        <TextBlock Text="Monospace caption — Consolas: reading sector 134,316,032 / 31,413,598"
+                                   Style="{DynamicResource Text.CaptionMono}" Margin="0,4" />
+                        <Separator Margin="0,16" />
+                        <TextBlock Text="CJK fallback (zh-CN: Microsoft YaHei UI; ja: Meiryo UI; ko: Malgun Gothic)"
+                                   Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,8" />
+                        <TextBlock Text="正在扫描丢失的数据 — 中文渲染（微软雅黑）" Style="{DynamicResource Text.Body}" Margin="0,4" />
+                        <TextBlock Text="紛失したデータをスキャンしています — 日本語（メイリオ）" Style="{DynamicResource Text.Body}" Margin="0,4" />
+                        <TextBlock Text="길을 잃은 데이터 검색 중 — 한국어（맑은 고딕）" Style="{DynamicResource Text.Body}" Margin="0,4" />
+                        <TextBlock Text="German long-string stress: Wiederherstellungsgeschwindigkeit — Dateisystembeschädigung"
+                                   Style="{DynamicResource Text.Body}" Margin="0,8,0,4" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Geometry">
+                <ScrollViewer Padding="24">
+                    <StackPanel>
+                        <TextBlock Text="Spacing scale (4px grid)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.XS}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="4" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.S}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="8" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.M}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="12" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.L}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="16" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.XL}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="24" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <Rectangle Width="{DynamicResource Space.XXL}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="32" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel>
+                                <Rectangle Width="{DynamicResource Space.Page}" Height="24" Fill="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="48" Style="{DynamicResource Text.Micro}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="Corner radii (4 / 6 / 8 / 12 / 20)" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="72" Height="48" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="{DynamicResource Radius.Control}" Margin="0,0,12,0" />
+                            <Border Width="72" Height="48" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="{DynamicResource Radius.ControlL}" Margin="0,0,12,0" />
+                            <Border Width="72" Height="48" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="{DynamicResource Radius.Card}" Margin="0,0,12,0" />
+                            <Border Width="72" Height="48" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="{DynamicResource Radius.Dialog}" Margin="0,0,12,0" />
+                            <Border Width="72" Height="48" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="{DynamicResource Radius.Splash}" />
+                        </StackPanel>
+
+                        <TextBlock Text="Elevation ladder (card / hover / flyout / dialog / window)" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="110" Height="56" Background="{DynamicResource Brush.Bg.Card}" CornerRadius="8"
+                                    Effect="{DynamicResource Effect.Elevation.Card}" Margin="0,8,16,8" />
+                            <Border Width="110" Height="56" Background="{DynamicResource Brush.Bg.Card}" CornerRadius="8"
+                                    Effect="{DynamicResource Effect.Elevation.CardHover}" Margin="0,8,16,8" />
+                            <Border Width="110" Height="56" Background="{DynamicResource Brush.Bg.Elevated}" CornerRadius="8"
+                                    Effect="{DynamicResource Effect.Elevation.Flyout}" Margin="0,8,16,8" />
+                            <Border Width="110" Height="56" Background="{DynamicResource Brush.Bg.Window}" CornerRadius="8"
+                                    Effect="{DynamicResource Effect.Elevation.Dialog}" Margin="0,8,16,8" />
+                            <Border Width="110" Height="56" Background="{DynamicResource Brush.Bg.Window}" CornerRadius="8"
+                                    Effect="{DynamicResource Effect.Elevation.Window}" Margin="0,8,0,8" />
+                        </StackPanel>
+
+                        <TextBlock Text="Tint ladder T1–T5 (hover/selected fills)" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="110" Height="36" Background="{DynamicResource Brush.Tint.T1}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="110" Height="36" Background="{DynamicResource Brush.Tint.T2}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="110" Height="36" Background="{DynamicResource Brush.Tint.T3}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="110" Height="36" Background="{DynamicResource Brush.Tint.T4}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="110" Height="36" Background="{DynamicResource Brush.Tint.T5}" CornerRadius="4" />
+                        </StackPanel>
+
+                        <TextBlock Text="Chart accents 1–8" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.1}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.2}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.3}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.4}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.5}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.6}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.7}" CornerRadius="4" Margin="0,0,8,0" />
+                            <Border Width="64" Height="36" Background="{DynamicResource Brush.Chart.8}" CornerRadius="4" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Buttons">
+                <ScrollViewer Padding="24">
+                    <StackPanel>
+                        <TextBlock Text="Button family — every variant × states" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <UniformGrid Columns="4">
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Primary" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Primary}" Content="Scan" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Primary}" Content="Hover me" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Primary}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Hero (CTA gradient)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Hero}" Content="Search for Lost Data" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Hero}" Content="Recover All..." Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Hero}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Secondary (QSS L603)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Secondary}" Content="Continue" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Secondary}" Content="Cancel" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Secondary}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Outline (QSS L682)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Outline}" Content="OK" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Outline}" Content="View Record" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Outline}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                        </UniformGrid>
+                        <UniformGrid Columns="4" Margin="0,12,0,0">
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Danger" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Danger}" Content="Stop Scan" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Danger}" Content="Delete" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Danger}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Ghost" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Ghost}" Content="Skip" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Ghost}" Content="Not now" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Ghost}" Content="Disabled" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Link" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Link}" Content="Unable to find your hard drive?" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Link}" Content="View solutions" Margin="0,0,0,6" />
+                                <Button Style="{DynamicResource Button.Link}" Content="Disabled link" IsEnabled="False" Margin="0,0,0,6" />
+                            </StackPanel>
+                            <StackPanel Margin="6">
+                                <TextBlock Text="Icon + split affix" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{DynamicResource Button.Icon}">
+                                        <controls:Icon IconName="Icon.Nav.Refresh" IconSize="16" />
+                                    </Button>
+                                    <Button Style="{DynamicResource Button.Icon}">
+                                        <controls:Icon IconName="Icon.Action.Settings" IconSize="16" />
+                                    </Button>
+                                    <Button Style="{DynamicResource Button.Icon}" Content="✕" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <Button Style="{DynamicResource Button.Primary}" Content="Recover" />
+                                    <Button Style="{DynamicResource Button.SplitAffix}" Margin="1,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Inputs">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+                        <TextBlock Text="Inputs — full state coverage" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <TextBlock Text="SearchField (placeholder / with text / focused / disabled)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                        <controls:SearchField Placeholder="Search files or folders" Margin="0,0,0,6" />
+                        <controls:SearchField Text="invoice" Placeholder="Search files or folders" Margin="0,0,0,6" />
+                        <controls:SearchField Placeholder="Disabled" IsEnabled="False" Margin="0,0,0,12" />
+                        <TextBlock Text="Toggle switches" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:ToggleSwitch Header="Enable file repair" IsChecked="True" Margin="0,0,24,0" />
+                            <controls:ToggleSwitch Header="Hide system files" Margin="0,0,24,0" />
+                            <controls:ToggleSwitch Header="Disabled" IsEnabled="False" IsChecked="True" />
+                        </StackPanel>
+                        <TextBlock Text="Check boxes and radios" Style="{DynamicResource Text.CaptionStrong}" Margin="0,12,0,6" />
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="Select all files" IsChecked="True" Margin="0,0,24,0" VerticalContentAlignment="Center" />
+                            <CheckBox Content="Indeterminate" IsThreeState="True" IsChecked="{x:Null}" Margin="0,0,24,0" VerticalContentAlignment="Center" />
+                            <CheckBox Content="Disabled" IsEnabled="False" IsChecked="True" VerticalContentAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,12">
+                            <RadioButton Content="Quick scan" GroupName="mode" IsChecked="True" Margin="0,0,24,0" VerticalContentAlignment="Center" />
+                            <RadioButton Content="Deep scan" GroupName="mode" Margin="0,0,24,0" VerticalContentAlignment="Center" />
+                            <RadioButton Content="Disabled" GroupName="mode" IsEnabled="False" VerticalContentAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="Segmented control" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,6" />
+                        <controls:Segmented x:Name="SegmentedDemo">
+                            <controls:Segmented.ItemsSource>
+                                <x:Array Type="{x:Type sys:String}">
+                                    <sys:String>List view</sys:String>
+                                    <sys:String>Icon view</sys:String>
+                                </x:Array>
+                            </controls:Segmented.ItemsSource>
+                        </controls:Segmented>
+                        <TextBlock Text="Slider" Style="{DynamicResource Text.CaptionStrong}" Margin="0,12,0,6" />
+                        <Slider Minimum="0" Maximum="100" Value="40" Width="320" HorizontalAlignment="Left" />
+                        <TextBlock Text="Tooltip (hover the button — QSS L20: blue, r8)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,12,0,6" />
+                        <Button Style="{DynamicResource Button.Secondary}" Content="Hover for tooltip"
+                                ToolTip="Remaining data can be rescanned and recovered anytime later." />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Feedback">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                        <TextBlock Text="Banners (info / success / warning / danger)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <controls:Banner Severity="Info" Title="Continue last scanning"
+                                         Message="Scan time 00:12:41 · 1,139,261 files · Windows (C:)"
+                                         ActionLabel="Load session" Margin="0,0,0,8" />
+                        <controls:Banner Severity="Success" Title="Recovery completed"
+                                         Message="1,247 of 1,247 files recovered to D:\Recovered"
+                                         Margin="0,0,0,8" />
+                        <controls:Banner Severity="Warning" Title="Scanning Paused."
+                                         Message="Resume when ready — progress is preserved."
+                                         ActionLabel="Resume" Margin="0,0,0,8" />
+                        <controls:Banner Severity="Danger" Title="Drive Disconnected"
+                                         Message="Unable to continue scanning. Reconnect your drive and try again."
+                                         ActionLabel="Retry" IsDismissible="False" Margin="0,0,0,16" />
+                        <TextBlock Text="Toasts (auto-dismiss 5s, hover pauses)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,8" />
+                        <Button Style="{DynamicResource Button.Secondary}" Content="Show sample toast" Click="OnShowToast" Margin="0,0,0,16" />
+                        <StackPanel x:Name="ToastHost" HorizontalAlignment="Right" Width="360" />
+                        <TextBlock Text="Confidence badges" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:ConfidenceBadge Grade="3" Margin="0,0,12,0" />
+                            <controls:ConfidenceBadge Grade="2" Margin="0,0,12,0" />
+                            <controls:ConfidenceBadge Grade="1" Margin="0,0,12,0" />
+                            <controls:ConfidenceBadge Grade="0" Margin="0,0,12,0" />
+                            <controls:ConfidenceBadge Grade="-1" />
+                        </StackPanel>
+                        <TextBlock Text="Progress surfaces" Style="{DynamicResource Text.Subtitle}" Margin="0,16,0,8" />
+                        <controls:ProgressSurface Value="68" StageLabel="Advanced Scanning" DetailText="68%" Height="6" Margin="0,0,0,12" />
+                        <controls:ProgressSurface IsIndeterminate="True" Height="6" Margin="0,0,0,12" />
+                        <controls:CircularGauge Value="21" Label="21%" SubLabel="Scanning" Margin="0,8" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Data">
+                <ScrollViewer Padding="24">
+                    <StackPanel>
+                        <TextBlock Text="Drive cards (home tiles — capacity, badges, selection)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:DriveCard GroupName="drives" DriveName="Windows" Letter="C:" FileSystem="NTFS"
+                                                CapacityText="31.15 GB / 149.45 GB"
+                                                Glyph="{DynamicResource Icon.Device.Disk}"
+                                                ShowOsBadge="True" ShowSsdBadge="True" Margin="0,0,12,0" />
+                            <controls:DriveCard GroupName="drives" DriveName="Temporary Storage" Letter="D:" FileSystem="exFAT"
+                                                CapacityText="8.04 GB / 29.71 GB"
+                                                Glyph="{DynamicResource Icon.Device.Usb}"
+                                                ShowUsbBadge="True" ShowTrimChip="True" Margin="0,0,12,0" />
+                            <controls:DriveCard GroupName="drives" DriveName="BitLocker Volume" Letter="E:" FileSystem="NTFS"
+                                                CapacityText="112 GB / 512 GB"
+                                                Glyph="{DynamicResource Icon.Device.LockedDisk}"
+                                                IsLocked="True" IsEnabled="False" />
+                        </StackPanel>
+                        <TextBlock Text="File-type filter chips" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FileTypeFilterChip Content="Pictures" Count="48192" Glyph="{DynamicResource Icon.Category.Picture}" IsChecked="True" Margin="0,0,8,0" />
+                            <controls:FileTypeFilterChip Content="Videos" Count="1207" Glyph="{DynamicResource Icon.Category.Video}" Margin="0,0,8,0" />
+                            <controls:FileTypeFilterChip Content="Documents" Count="31844" Glyph="{DynamicResource Icon.Category.Document}" Margin="0,0,8,0" />
+                            <controls:FileTypeFilterChip Content="Archive" Count="93" Glyph="{DynamicResource Icon.Category.Archive}" IsEnabled="False" />
+                        </StackPanel>
+                        <TextBlock Text="Recovery queue rows (destination picker)" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel MaxWidth="560" HorizontalAlignment="Left">
+                            <controls:RecoveryQueueRow GroupName="dest" DestinationName="Windows (C:)"
+                                                       CapacityText="31.30 GB free / 149.45 GB" VerdictText="Fits"
+                                                       Glyph="{DynamicResource Icon.Device.Disk}" IsChecked="True" Margin="0,0,0,8" />
+                            <controls:RecoveryQueueRow GroupName="dest" DestinationName="Temporary Storage (D:)"
+                                                       CapacityText="8.04 GB free / 29.71 GB" VerdictText="Needs 146.41 GB more"
+                                                       VerdictKind="1" Glyph="{DynamicResource Icon.Device.Usb}" Margin="0,0,0,8" />
+                            <controls:RecoveryQueueRow GroupName="dest" DestinationName="Windows (C:) — scan source"
+                                                       CapacityText="Do not save data to this drive" VerdictText="Source overlap"
+                                                       VerdictKind="2" Glyph="{DynamicResource Icon.Device.Disk}" />
+                        </StackPanel>
+                        <TextBlock Text="Health gauge" Style="{DynamicResource Text.Subtitle}" Margin="0,20,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:HealthGauge Band="0" Caption="Good" Margin="0,0,32,0" />
+                            <controls:HealthGauge Band="1" Caption="Caution" Margin="0,0,32,0" />
+                            <controls:HealthGauge Band="2" Caption="Bad" Margin="0,0,32,0" />
+                            <controls:HealthGauge Band="-1" Caption="Unknown" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Icons">
+                <ScrollViewer Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="Icon set — chrome (stroke, 24-grid)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <WrapPanel x:Name="ChromeIconPanel" />
+                        <TextBlock Text="Tile register (filled, 20-grid)" Style="{DynamicResource Text.Subtitle}" Margin="0,16,0,12" />
+                        <WrapPanel x:Name="TileIconPanel" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="States">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+                        <TextBlock Text="State surfaces (empty / error / skeleton)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <controls:StateSurface Glyph="&#xE1;"
+                                               Headline="No files match 'invoice'"
+                                               Detail="Try a different spelling, or filter by file type." Margin="0,0,0,12" />
+                        <controls:StateSurface Glyph="&#xE2;"
+                                               Headline="Drive Disconnected"
+                                               Detail="Unable to continue scanning. Reconnect your drive and try again."
+                                               IsError="True" Margin="0,0,0,12" />
+                        <Border Style="{DynamicResource Card}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Loading skeleton (content-geometry matched)" Style="{DynamicResource Text.CaptionStrong}" Margin="0,0,0,8" />
+                                <Border Height="16" Width="280" HorizontalAlignment="Left" Background="{DynamicResource Brush.Tint.T2}" CornerRadius="4" Margin="0,0,0,6" Opacity="0.8" />
+                                <Border Height="12" Width="200" HorizontalAlignment="Left" Background="{DynamicResource Brush.Tint.T2}" CornerRadius="4" Margin="0,0,0,10" Opacity="0.6" />
+                                <Border Height="44" Background="{DynamicResource Brush.Tint.T1}" CornerRadius="4" Margin="0,0,0,4" Opacity="0.9" />
+                                <Border Height="44" Background="{DynamicResource Brush.Tint.T1}" CornerRadius="4" Margin="0,0,0,4" Opacity="0.7" />
+                                <Border Height="44" Background="{DynamicResource Brush.Tint.T1}" CornerRadius="4" Opacity="0.5" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Motion">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+                        <TextBlock Text="Motion tokens &amp; choreography (VD-E)" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                        <TextBlock Style="{DynamicResource Text.BodySecondary}" TextWrapping="Wrap"
+                                   Text="Durations: PageTransition 300ms cubic-out · PanelOpen 250 / Close 200 · Hover 120 · Press 80 · ProgressSmoothing 300 · ShimmerLoop 1600 · CountUp 250 · TreeExpand 200 · ToastIn/Out 250/200. Reduced motion (SystemParameters.ClientAreaAnimation=false) collapses all to 0 and degrades shimmer to a 2Hz 10% opacity dip. Press the buttons to feel each choreography." Margin="0,0,0,16" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Button Style="{DynamicResource Button.Secondary}" Content="Play page transition" Click="OnPlayPageTransition" Margin="0,0,8,0" />
+                            <Button Style="{DynamicResource Button.Secondary}" Content="Play panel open/close" Click="OnPlayPanel" Margin="0,0,8,0" />
+                            <Button Style="{DynamicResource Button.Secondary}" Content="Play press scale" Click="OnPlayPress" />
+                        </StackPanel>
+                        <Border x:Name="MotionStage" Style="{DynamicResource Card}" Height="180">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <controls:Icon IconName="Icon.Art.Scanning" IconKind="Art" IconSize="64"
+                                               IconBrush="{DynamicResource Brush.Brand.Primary}" />
+                                <TextBlock Text="Motion stage" Style="{DynamicResource Text.Caption}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Dialogs">
+                <ScrollViewer Padding="24">
+                    <StackPanel MaxWidth="560" HorizontalAlignment="Left">
+                        <TextBlock Text="Dialog family" Style="{DynamicResource Text.Subtitle}" Margin="0,0,0,12" />
+                        <Button Style="{DynamicResource Button.Secondary}" Content="Show stop-confirm dialog" Click="OnShowStopDialog" Margin="0,0,0,8" />
+                        <Button Style="{DynamicResource Button.Secondary}" Content="Show danger acknowledgment gate" Click="OnShowGateDialog" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
