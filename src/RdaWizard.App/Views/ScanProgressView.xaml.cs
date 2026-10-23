@@ -8,7 +8,7 @@ namespace RdaWizard.App.Views;
 /// <summary>Scan progress view — cancel routes through the orchestrator (confirm → engine cancel).</summary>
 public partial class ScanProgressView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public ScanProgressView()
     {

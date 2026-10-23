@@ -9,7 +9,7 @@ namespace RdaWizard.App.Views;
 /// <summary>Completion view — final actions route through the orchestrator.</summary>
 public partial class CompletionView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public CompletionView()
     {

@@ -22,7 +22,7 @@ namespace RdaWizard.App;
 /// </summary>
 public partial class App : Application
 {
-    private IHost? _host;
+    private static IHost? _host;
     private DispatcherWatchdog? _watchdog;
 
     public static IServiceProvider Services =>
@@ -43,6 +43,7 @@ public partial class App : Application
                 Path.Combine(logDirectory, "rda-wizard-.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14,
+                formatProvider: System.Globalization.CultureInfo.InvariantCulture,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
@@ -54,7 +55,7 @@ public partial class App : Application
                 services.AddRdaWizardIntegration();
 
                 // WPF-facing services
-                services.AddSingleton<RdaWizard.App.Services.IDialogService, DialogService>();
+                services.AddSingleton<Core.Services.IDialogService, Services.DialogService>();
                 services.AddSingleton<ThemeService>();
                 services.AddSingleton<ShellOrchestrator>();
                 services.AddSingleton<DispatcherWatchdog>();
@@ -91,7 +92,7 @@ public partial class App : Application
 
         mainWindow.Show();
 
-        Log.LogInformation("RdaWizard started (version {Version})", typeof(App).Assembly.GetName().Version);
+        Log.Information("RdaWizard started (version {Version})", typeof(App).Assembly.GetName().Version);
         _ = mainViewModel.Home.RefreshAsync(CancellationToken.None);
     }
 
@@ -103,7 +104,7 @@ public partial class App : Application
             await _host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
             _host.Dispose();
         }
-        Log.LogInformation("RdaWizard exited with code {ExitCode}", e.ApplicationExitCode);
+        Log.Information("RdaWizard exited with code {ExitCode}", e.ApplicationExitCode);
         await Log.CloseAndFlushAsync().ConfigureAwait(true);
         base.OnExit(e);
     }

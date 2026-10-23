@@ -9,7 +9,7 @@ namespace RdaWizard.App.Views;
 /// <summary>Scan configuration view — start goes through the orchestrator (guarded transition).</summary>
 public partial class ScanConfigView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public ScanConfigView()
     {

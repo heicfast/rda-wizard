@@ -93,7 +93,7 @@ public sealed class EqualityToVisibilityConverter : IValueConverter
 public sealed class EnumToIntConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is Enum enumValue ? Convert.ToInt32(enumValue, culture) : 0;
+        value is Enum enumValue ? System.Convert.ToInt32(enumValue, culture) : 0;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
@@ -121,7 +121,7 @@ public sealed class EnumMatchConverter : IValueConverter
         Equals(value, parameter);
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is true ? parameter : Binding.DoNothing;
+        value is true ? parameter! : Binding.DoNothing;
 }
 
 /// <summary>Date → short local string; null-safe (G-24 timestamps render as "—").</summary>

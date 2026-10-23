@@ -14,7 +14,7 @@ namespace RdaWizard.App.Views;
 /// </summary>
 public partial class ResultsView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public ResultsView()
     {

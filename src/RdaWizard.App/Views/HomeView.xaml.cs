@@ -15,7 +15,7 @@ namespace RdaWizard.App.Views;
 /// </summary>
 public partial class HomeView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public HomeView()
     {

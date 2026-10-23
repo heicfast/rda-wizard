@@ -9,7 +9,7 @@ namespace RdaWizard.App.Views;
 /// <summary>Recovery destination + queue view — start/cancel/browse route through the orchestrator.</summary>
 public partial class RecoveryView : UserControl
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public RecoveryView()
     {

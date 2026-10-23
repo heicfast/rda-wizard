@@ -15,7 +15,7 @@ namespace RdaWizard.App.Services;
 /// scan run are generated and tracked (SessionSourceRegistry feeds the
 /// overlap gate's source-disk resolution).
 /// </summary>
-public sealed class ShellOrchestrator
+public sealed class ShellOrchestrator : IDisposable
 {
     private readonly ILogger<ShellOrchestrator> _logger;
     private readonly IServiceProvider _services;
@@ -96,7 +96,7 @@ public sealed class ShellOrchestrator
     public async Task CancelScanAsync()
     {
         var confirmed = await _main.ScanProgress.ConfirmCancelAsync().ConfigureAwait(true);
-        if (!confirmed)
+        if (confirmed != Core.Services.DialogResult.Confirmed)
         {
             return;
         }
@@ -169,7 +169,7 @@ public sealed class ShellOrchestrator
             "Files already written remain in the destination folder. Cancel the remaining recovery?",
             "Cancel recovery",
             destructive: true).ConfigureAwait(true);
-        if (!confirmed)
+        if (confirmed != Core.Services.DialogResult.Confirmed)
         {
             return;
         }
@@ -328,6 +328,11 @@ public sealed class ShellOrchestrator
     {
         var licenses = LicenseText.Build();
         System.Windows.MessageBox.Show(licenses, "Open-source licenses", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    public void Dispose()
+    {
+        _flowCancellation.Dispose();
     }
 }
 

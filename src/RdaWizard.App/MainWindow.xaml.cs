@@ -13,7 +13,7 @@ namespace RdaWizard.App;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
+    private static ShellOrchestrator Orchestrator => App.Services.GetRequiredService<ShellOrchestrator>();
 
     public MainWindow()
     {
