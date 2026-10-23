@@ -142,3 +142,60 @@ Remaining for v0.1.0-ui (tracked): docs/ARCHITECTURE.md + TESTING.md +
 ROADMAP.md, T4 static-shell screenshots (Windows runner capture), T9 1M-node
 virtualization perf test wiring, preview worker implementation (bounded),
 T18 FlaUI full flow on seeded VM, tag v0.1.0-ui.
+
+---
+
+## Session 1 — FINAL HANDOFF (2026-10-23)
+
+### Milestone: v0.1.0-ui tagged, all CI green, release published
+
+- `ci` ✅ windows-latest + windows-2022 (full WPF build, 99 tests, dotnet
+  format clean, portable artifact) + ubuntu fast-feedback job
+- `ui-smoke` ✅ FlaUI launches the real app on CI: shell title, home
+  headline, About navigation all asserted; shell-home.png + shell-about.png
+  captured as artifacts (T4); Serilog dir collected for diagnosability
+- `release` ✅ v0.1.0-ui published: rda-wizard-portable-win-x64.zip,
+  rda-wizard-selfcontained-win-x64.zip, SHA256SUMS
+
+### Commits this session (chronological)
+
+71c7512 skeleton → d79d88b T2 research gate → 0050f46 T3 WIP (stop-recovery
+push) → 015392b build clean → c2eaad6 99 tests + 4 real bug fixes →
+e787bcd merge w/ parity-auditor bootstrap → a9902de full WPF layer →
+86994a8 docs suite → [CI fix series: 0da41c4 MC4005, 217089e MC4111,
+c89a41f Automation using, 5f59de6 MC3074+MC3042, 9b0ac74 C# fixes,
+2efe1ef bool compare, d93ae99 xmlns refs, e1ac722 format pass, ci GREEN] →
+39d38a9 shutdown race → 4b156fb Thickness tokens [ui-smoke GREEN] →
+23b5630 screenshots → v0.1.0-ui tag → 8625903 release perms → RELEASE.
+
+### Where the next agent picks up
+
+Pins: rda-wizard @ 8625903 (tag v0.1.0-ui) — core @ 2473c03+ (pull! the
+UI-readiness sub-agent is landing the C ABI shim/snapshot/pause-resume/
+report/preview/query APIs on issues #1-#10) — driver @ 7e88e38 (v0.2.1;
+TRANSPORT-CONTRACT.md still pins v0.2.0 semantics — delta-check on pull) —
+parity auditor active in a third session.
+
+Priority queue (docs/ROADMAP.md is authoritative):
+1. Preview workers (T11): IPreviewService seam is wired in Core + App;
+   implement bounded decode over temp-materialized content (Docnet.Core is
+   already referenced for PDF).
+2. 1M-node virtualization + filter-latency CI perf job (T9/T19): parser
+   already handles 1M rows <10s locally (test exists); add the ListView
+   scroll-perf measurement on Windows.
+3. FlaUI full wizard flow against a real seeded rrecov build (T18) —
+   blocked on engine artifacts being consumed in CI (coordinate with core
+   CI to publish rrecov.exe as an artifact the UI workflow downloads).
+4. Swap Integration implementations to the core C ABI shim when it lands
+   (behind the same Core interfaces — no ViewModel/view changes).
+5. TRANSPORT-CONTRACT.md v0.2.1 delta check.
+
+### Standing cautions for the next agent
+
+- WPF XAML cannot compile on Linux: the 10-round CI fix series in this
+  worklog shows the failure classes (attached-property validity, Trigger
+  target registration, namespace federation, Thickness-vs-Double tokens,
+  async-startup shutdown race). Windows CI is the ONLY compile truth.
+- Every UI capability claim must trace to CORE-CONTRACT.md §13 + the gap
+  register — the parity auditor verifies exactly this.
+- Push after EVERY coherent unit — the mid-session stop proved the rule.
