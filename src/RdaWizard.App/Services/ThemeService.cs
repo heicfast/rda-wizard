@@ -73,19 +73,27 @@ public sealed class ThemeService
 /// Pings the dispatcher at background priority; if a ping is not serviced
 /// within the threshold, logs a warning with the stall duration.
 /// </summary>
-public sealed class DispatcherWatchdog
+public sealed class DispatcherWatchdog : IDisposable
 {
     private readonly ILogger<DispatcherWatchdog> _logger;
-    private readonly System.Windows.Threading.Dispatcher _dispatcher =
-        System.Windows.Application.Current?.Dispatcher ??
-        System.Windows.Threading.Dispatcher.DefaultDispatcher;
+    private readonly System.Windows.Threading.Dispatcher _dispatcher;
 
     private const int ThresholdMs = 50;
     private const int IntervalMs = 250;
     private System.Threading.Timer? _timer;
     private long _lastTick;
 
-    public DispatcherWatchdog(ILogger<DispatcherWatchdog> logger) => _logger = logger;
+    public DispatcherWatchdog(ILogger<DispatcherWatchdog> logger)
+        : this(logger, null)
+    {
+    }
+
+    public DispatcherWatchdog(ILogger<DispatcherWatchdog> logger, System.Windows.Threading.Dispatcher? dispatcher)
+    {
+        _logger = logger;
+        _dispatcher = dispatcher ?? System.Windows.Application.Current?.Dispatcher
+            ?? throw new InvalidOperationException("DispatcherWatchdog requires a dispatcher (construct on the UI thread).");
+    }
 
     public void Start()
     {
@@ -106,4 +114,6 @@ public sealed class DispatcherWatchdog
     }
 
     public void Stop() => _timer?.Dispose();
+
+    public void Dispose() => _timer?.Dispose();
 }

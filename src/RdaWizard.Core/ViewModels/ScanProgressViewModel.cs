@@ -129,6 +129,17 @@ public partial class ScanProgressViewModel : ViewModelBase
     /// <summary>Requests cancellation of the running scan (the shell confirms first).</summary>
     public void CancelScan() => _scanCancellation?.Cancel();
 
+    /// <summary>Confirmation for the destructive cancel — returns true when the user accepts.</summary>
+    public async Task<bool> ConfirmCancelAsync()
+    {
+        var result = await _dialogs.ConfirmAsync(
+            "Cancel the scan?",
+            "The engine cannot save partial results: everything found so far in this scan will be lost. Cancel anyway?",
+            "Cancel scan",
+            destructive: true).ConfigureAwait(true);
+        return result == DialogResult.Confirmed;
+    }
+
     private static string FormatElapsed(TimeSpan elapsed) =>
         elapsed.TotalHours >= 1
             ? $"{(int)elapsed.TotalHours}:{elapsed.Minutes:D2}:{elapsed.Seconds:D2}"

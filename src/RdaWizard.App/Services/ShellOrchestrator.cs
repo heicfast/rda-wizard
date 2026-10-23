@@ -1,3 +1,5 @@
+using System.IO;
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RdaWizard.Core.Models;
@@ -301,7 +303,7 @@ public sealed class ShellOrchestrator : IDisposable
     private async Task<string> BuildSessionPathAsync(ScanTarget target)
     {
         var sessionsDirectory = _sessions.SessionsDirectory;
-        var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
         var safeDescription = string.Join("_", target.Description.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries))
             .TrimEnd('.');
         var name = $"scan-disk{target.DiskIndex}-{safeDescription}-{stamp}.crsf";

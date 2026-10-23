@@ -68,9 +68,10 @@ public partial class App : Application
         ViewModelBase.InstallUiMarshaler(action =>
             Dispatcher.BeginInvoke(DispatcherPriority.DataBind, action));
 
-        // Debug-build dispatcher watchdog: no UI-thread block > 50 ms (budget T19).
-#if DEBUG
+        // Dispatcher watchdog: no UI-thread block > 50 ms (budget T19).
+        // Constructed always (Release included); pings only run when started.
         _watchdog = Services.GetRequiredService<DispatcherWatchdog>();
+#if DEBUG
         _watchdog.Start();
 #endif
 
